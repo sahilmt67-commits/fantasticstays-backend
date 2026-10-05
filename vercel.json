@@ -1,14 +1,13 @@
 {
     "version": 2,
     "framework": null,
-    "outputDirectory": "public",
+    "outputDirectory": "dist",
     "functions": {
         "api/index.php": {
             "runtime": "vercel-php@0.7.4"
         }
     },
     "routes": [
-        { "handle": "filesystem" },
         {
             "src": "/(.*)",
             "dest": "/api/index.php"
@@ -22,6 +21,13 @@
         "CACHE_STORE": "array",
         "SESSION_DRIVER": "cookie",
         "SESSION_SECURE_COOKIE": "true",
-        "QUEUE_CONNECTION": "sync"
+        "QUEUE_CONNECTION": "sync",
+        "LARAVEL_STORAGE_PATH": "/tmp/storage",
+        "VIEW_COMPILED_PATH": "/tmp/storage/framework/views",
+        "APP_CONFIG_CACHE": "/tmp/config.php",
+        "APP_EVENTS_CACHE": "/tmp/events.php",
+        "APP_PACKAGES_CACHE": "/tmp/packages.php",
+        "APP_ROUTES_CACHE": "/tmp/routes-v7.php",
+        "APP_SERVICES_CACHE": "/tmp/services.php"
     }
 }
