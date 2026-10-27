@@ -134,24 +134,14 @@
 
 <script>
 function uploadAboutImage(fileInput) {
-    const file = fileInput.files && fileInput.files[0];
-    if (!file) return;
     const progress = document.getElementById('about_upload_progress');
     if (progress) progress.classList.remove('d-none');
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-    fetch(@json(route('admin.settings.upload-image')), { method: 'POST', body: formData })
-        .then(function (response) { return response.json(); })
+    window.uploadAdminImage(fileInput, @json(route('admin.settings.upload-image')))
         .then(function (data) {
-            if (!data.url) {
-                alert('Upload failed');
-                return;
-            }
+            if (!data || !data.url) return;
             document.getElementById('about_image').value = data.url;
             document.getElementById('about_preview').src = data.url;
         })
-        .catch(function (error) { alert('Upload error: ' + error); })
         .finally(function () {
             if (progress) progress.classList.add('d-none');
             fileInput.value = '';

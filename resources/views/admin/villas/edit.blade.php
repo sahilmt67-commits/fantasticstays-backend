@@ -126,6 +126,7 @@
                 {{-- ===== HERO IMAGE ===== --}}
                 <div class="mb-4">
                     <label class="form-label fw-semibold small">Primary Card / Hero Image <span class="text-danger">*</span></label>
+                    <p class="text-muted small mb-2">You can upload images up to 200 MB. Photos are saved as compressed WebP with good quality.</p>
                     <div class="d-flex gap-2 align-items-center mb-2">
                         <input type="text" name="image" id="hero_image_input"
                                class="form-control font-monospace small"
@@ -154,13 +155,15 @@
                     $galleryArr = is_array($villa->gallery) ? $villa->gallery : [];
                 @endphp
                 <div class="mb-2">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <label class="form-label fw-semibold small mb-0">Photo Gallery (up to 10 images)</label>
-                        <button type="button" class="btn btn-sm btn-outline-success" onclick="addGallerySlot()">
-                            <i class="bi bi-plus-circle me-1"></i> Add Image
-                        </button>
+                    <label class="form-label fw-semibold small mb-2">Photo Gallery (up to 20 images)</label>
+                    <small class="text-muted d-block mb-3">Select photos below. Use the trash button to remove one, then save the villa.</small>
+
+                    <div class="mb-3 p-3 rounded-3 border" data-image-loader style="background:#f8faf9;">
+                        <label class="form-label fw-semibold small mb-1" for="gallery_multi_input">Upload multiple images</label>
+                        <input type="file" id="gallery_multi_input" class="form-control form-control-sm" accept="image/*" multiple onchange="uploadGalleryImages(this)">
+                        <input type="file" id="gallery_single_holder" class="d-none" accept="image/*">
+                        <div class="form-text">Select several photos from your computer. They upload one after another, and the percent loader appears below.</div>
                     </div>
-                    <small class="text-muted d-block mb-3">Upload images. Each thumbnail is one gallery photo.</small>
 
                     <input type="hidden" name="gallery_raw" id="gallery_raw_input">
 
@@ -179,7 +182,7 @@
                                 }
                             }
                         @endphp
-                        <div class="gallery-slot d-flex gap-2 align-items-center mb-2">
+                        <div class="gallery-slot">
                             <span class="badge bg-secondary" style="min-width:28px;">{{ $gi + 1 }}</span>
                             <div class="gallery-thumb-wrap">
                                 <img class="gallery-thumb rounded border object-fit-cover {{ $thumbUrl ? '' : 'd-none' }}"
@@ -190,33 +193,11 @@
                                 </div>
                             </div>
                             <input type="hidden" class="gallery-url-field" value="{{ $slotUrl }}">
-                            <label class="btn btn-outline-secondary btn-sm mb-0 text-nowrap" style="cursor:pointer;">
-                                <i class="bi bi-folder2-open me-1"></i> Browse
-                                <input type="file" accept="image/*" class="d-none gallery-file-input" onchange="uploadGalleryImage(this)">
-                            </label>
                             <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeGallerySlot(this)" title="Remove">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </div>
                         @empty
-                        <div class="gallery-slot d-flex gap-2 align-items-center mb-2">
-                            <span class="badge bg-secondary" style="min-width:28px;">1</span>
-                            <div class="gallery-thumb-wrap">
-                                <img class="gallery-thumb rounded border object-fit-cover d-none" alt="Gallery image 1"
-                                     onerror="this.classList.add('d-none'); this.parentElement.querySelector('.gallery-thumb-empty').classList.remove('d-none');">
-                                <div class="gallery-thumb-empty rounded border">
-                                    <i class="bi bi-image"></i>
-                                </div>
-                            </div>
-                            <input type="hidden" class="gallery-url-field" value="">
-                            <label class="btn btn-outline-secondary btn-sm mb-0 text-nowrap" style="cursor:pointer;">
-                                <i class="bi bi-folder2-open me-1"></i> Browse
-                                <input type="file" accept="image/*" class="d-none gallery-file-input" onchange="uploadGalleryImage(this)">
-                            </label>
-                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeGallerySlot(this)" title="Remove">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </div>
                         @endforelse
                     </div>
 
@@ -260,7 +241,7 @@
             </div>
 
             @include('admin.villas.partials.extras')
-            @include('admin.villas.partials.stay-content')
+            @include('admin.villas.partials.policy-editors')
 
         </div>{{-- /col-lg-8 --}}
 
@@ -282,6 +263,16 @@
                 <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" name="is_featured" id="is_featured" value="1" {{ old('is_featured', $villa->is_featured) ? 'checked' : '' }}>
                     <label class="form-check-label fw-semibold small" for="is_featured">Feature on Home Page</label>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="show_on_sale" id="show_on_sale" value="1" {{ old('show_on_sale', $villa->show_on_sale) ? 'checked' : '' }}>
+                    <label class="form-check-label fw-semibold small" for="show_on_sale">Villas for Sale</label>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="show_on_list" id="show_on_list" value="1" {{ old('show_on_list', $villa->show_on_list) ? 'checked' : '' }}>
+                    <label class="form-check-label fw-semibold small" for="show_on_list">List Your Villas</label>
                 </div>
 
                 <div class="form-check form-switch mb-4">
@@ -315,37 +306,8 @@
                 </div>
             </div>
 
-            <!-- Tags & Policies -->
-            <div class="card card-custom p-4">
-                <h5 class="fw-bold mb-3" style="color: var(--fs-emerald);">Rules & Policies</h5>
+            @include('admin.villas.partials.stay-content')
 
-                @php
-                    $tagsStr = is_array($villa->tags) ? implode(', ', $villa->tags) : '';
-                @endphp
-                <div class="mb-3">
-                    <label class="form-label fw-semibold small">Tags (Comma-separated)</label>
-                    <input type="text" name="tags_raw" class="form-control" value="{{ old('tags_raw', $tagsStr) }}">
-                </div>
-
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label fw-semibold small">Check-in Time</label>
-                        <input type="text" name="check_in_time" class="form-control" value="{{ old('check_in_time', $villa->check_in_time) }}">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label fw-semibold small">Check-out Time</label>
-                        <input type="text" name="check_out_time" class="form-control" value="{{ old('check_out_time', $villa->check_out_time) }}">
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label fw-semibold small">Full Address / Landmark</label>
-                    <textarea name="address" rows="2" class="form-control">{{ old('address', $villa->address) }}</textarea>
-                </div>
-
-                @include('admin.villas.partials.house-rules')
-            </div>
-            
             <!-- SEO & Meta Data -->
             <div class="card card-custom p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-3">
@@ -418,8 +380,7 @@ let ckEditorInstance = null;
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    ckEditorInstance = CKEDITOR.replace('ck_description', {
-        height: 320,
+    const ckeditorOptions = {
         versionCheck: false,
         filebrowserImageBrowseUrl: @json(url('/admin/lfm?type=Images')),
         filebrowserImageUploadUrl: @json(url('/admin/lfm/upload?type=Images&_token='.csrf_token())),
@@ -428,16 +389,27 @@ document.addEventListener('DOMContentLoaded', function () {
         filebrowserWindowWidth: 980,
         filebrowserWindowHeight: 640,
         removeDialogTabs: 'image:advanced;link:advanced'
-    });
+    };
+
+    function mountEditor(id, height) {
+        const field = document.getElementById(id);
+        if (!field) return null;
+        return CKEDITOR.replace(id, Object.assign({ height: height }, ckeditorOptions));
+    }
+
+    ckEditorInstance = mountEditor('ck_description', 320);
+    const ckCancellation = mountEditor('ck_cancellation', 260);
+    const ckHouseRules = mountEditor('ck_house_rules', 260);
 
     document.getElementById('villa-form').addEventListener('submit', function () {
-        if (ckEditorInstance) {
-            ckEditorInstance.updateElement();
-        }
+        [ckEditorInstance, ckCancellation, ckHouseRules].forEach(function (editor) {
+            if (editor) editor.updateElement();
+        });
+        syncGalleryRaw();
     });
 
     // Initialize gallery slot count from server-rendered slots
-    gallerySlotCount = document.querySelectorAll('.gallery-slot').length || 1;
+    gallerySlotCount = document.querySelectorAll('.gallery-slot').length;
     syncGalleryRaw();
 
     updateSeoPreview();
@@ -450,29 +422,20 @@ function previewHeroImage(url) {
 }
 
 function uploadHeroImage(fileInput) {
-    const file = fileInput.files[0];
-    if (!file) return;
     const progress = document.getElementById('hero_upload_progress');
     progress.classList.remove('d-none');
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-    fetch('{{ route("admin.villas.upload-image") }}', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-            if (data.url) {
-                document.getElementById('hero_image_input').value = data.url;
-                previewHeroImage(data.url);
-            } else {
-                alert('Upload failed: ' + (data.message || 'Unknown error'));
-            }
+    window.uploadAdminImage(fileInput, @json(route('admin.villas.upload-image')))
+        .then((data) => {
+            if (!data || !data.url) return;
+            document.getElementById('hero_image_input').value = data.url;
+            previewHeroImage(data.url);
         })
-        .catch(e => alert('Upload error: ' + e))
         .finally(() => progress.classList.add('d-none'));
 }
 
 // ─── Gallery Slots ──────────────────────────────────────────────────────────
-let gallerySlotCount = 1;
+let gallerySlotCount = 0;
+const GALLERY_MAX = 20;
 
 function syncGalleryRaw() {
     const urls = [];
@@ -516,28 +479,21 @@ function gallerySlotHtml(index) {
         '<div class="gallery-thumb-empty rounded border"><i class="bi bi-image"></i></div>' +
         '</div>' +
         '<input type="hidden" class="gallery-url-field" value="">' +
-        '<label class="btn btn-outline-secondary btn-sm mb-0 text-nowrap" style="cursor:pointer;">' +
-        '<i class="bi bi-folder2-open me-1"></i> Browse' +
-        '<input type="file" accept="image/*" class="d-none gallery-file-input" onchange="uploadGalleryImage(this)">' +
-        '</label>' +
         '<button type="button" class="btn btn-outline-danger btn-sm" onclick="removeGallerySlot(this)" title="Remove">' +
         '<i class="bi bi-trash"></i></button>';
 }
 
 function addGallerySlot() {
-    if (gallerySlotCount >= 10) { alert('Maximum 10 gallery images allowed.'); return; }
+    if (gallerySlotCount >= GALLERY_MAX) return;
     gallerySlotCount++;
     const container = document.getElementById('gallery_slots_container');
     const div = document.createElement('div');
-    div.className = 'gallery-slot d-flex gap-2 align-items-center mb-2';
+    div.className = 'gallery-slot';
     div.innerHTML = gallerySlotHtml(gallerySlotCount);
     container.appendChild(div);
 }
 
 function removeGallerySlot(btn) {
-    if (document.querySelectorAll('.gallery-slot').length <= 1) {
-        alert('At least one gallery image slot is required.'); return;
-    }
     btn.closest('.gallery-slot').remove();
     document.querySelectorAll('.gallery-slot').forEach((s, i) => {
         const badge = s.querySelector('.badge');
@@ -547,27 +503,79 @@ function removeGallerySlot(btn) {
     syncGalleryRaw();
 }
 
+function placeGalleryImage(url) {
+    let slot = null;
+    document.querySelectorAll('#gallery_slots_container .gallery-slot').forEach(function (candidate) {
+        if (slot) return;
+        const field = candidate.querySelector('.gallery-url-field');
+        if (field && !field.value.trim()) slot = candidate;
+    });
+    if (!slot) {
+        if (document.querySelectorAll('#gallery_slots_container .gallery-slot').length >= GALLERY_MAX) return;
+        addGallerySlot();
+        const slots = document.querySelectorAll('#gallery_slots_container .gallery-slot');
+        slot = slots[slots.length - 1];
+    }
+    if (!slot) return;
+    slot.querySelector('.gallery-url-field').value = url;
+    refreshGalleryThumb(slot);
+    syncGalleryRaw();
+}
+
+function uploadGalleryImages(fileInput) {
+    const selected = Array.from(fileInput.files || []);
+    fileInput.value = '';
+    if (!selected.length) return;
+
+    const filled = Array.from(document.querySelectorAll('#gallery_slots_container .gallery-url-field'))
+        .filter(function (field) { return field.value.trim() !== ''; }).length;
+    const room = GALLERY_MAX - filled;
+    if (room <= 0) {
+        alert('Maximum 20 gallery images allowed.');
+        return;
+    }
+    const batch = selected.slice(0, room);
+    if (selected.length > room) {
+        alert('Only ' + room + ' more image' + (room === 1 ? '' : 's') + ' can be added. The rest were skipped.');
+    }
+
+    const holder = document.getElementById('gallery_single_holder');
+    const submit = document.querySelector('#villa-form button[type="submit"]');
+    const uploadUrl = @json(route('admin.villas.upload-image'));
+    fileInput.disabled = true;
+    if (submit) submit.disabled = true;
+
+    let chain = Promise.resolve();
+    batch.forEach(function (file, index) {
+        chain = chain.then(function () {
+            const transfer = new DataTransfer();
+            transfer.items.add(file);
+            holder.files = transfer.files;
+            return window.uploadAdminImage(holder, uploadUrl, (index + 1) + ' of ' + batch.length).then(function (data) {
+                if (!data || !data.url) return Promise.reject();
+                placeGalleryImage(data.url);
+            });
+        });
+    });
+
+    chain.catch(function () {}).finally(function () {
+        holder.value = '';
+        fileInput.disabled = false;
+        if (submit) submit.disabled = false;
+    });
+}
+
 function uploadGalleryImage(fileInput) {
-    const file = fileInput.files[0];
-    if (!file) return;
-    const urlField = fileInput.closest('.gallery-slot').querySelector('.gallery-url-field');
     const progress = document.getElementById('gallery_upload_progress');
     progress.classList.remove('d-none');
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-    fetch('{{ route("admin.villas.upload-image") }}', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-            if (data.url) {
-                urlField.value = data.url;
-                refreshGalleryThumb(fileInput.closest('.gallery-slot'));
-                syncGalleryRaw();
-            } else {
-                alert('Upload failed: ' + (data.message || 'Unknown error'));
-            }
+    window.uploadAdminImage(fileInput, @json(route('admin.villas.upload-image')))
+        .then((data) => {
+            if (!data || !data.url) return;
+            const slot = fileInput.closest('.gallery-slot');
+            slot.querySelector('.gallery-url-field').value = data.url;
+            refreshGalleryThumb(slot);
+            syncGalleryRaw();
         })
-        .catch(e => alert('Upload error: ' + e))
         .finally(() => progress.classList.add('d-none'));
 }
 
@@ -596,9 +604,23 @@ function updateSeoPreview() {
 </script>
 
 <style>
-    .gallery-thumb-wrap { width: 72px; height: 52px; flex: 0 0 72px; position: relative; }
+    #gallery_slots_container {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+    @media (min-width: 768px) {
+        #gallery_slots_container { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+    .gallery-slot { position: relative; }
+    .gallery-thumb-wrap { width: 100%; height: 120px; position: relative; }
     .gallery-thumb, .gallery-thumb-empty {
-        width: 72px; height: 52px; background: #f4f1ea;
+        width: 100%; height: 120px; background: #f4f1ea;
+    }
+    .gallery-slot .badge { position: absolute; top: 8px; left: 8px; z-index: 2; }
+    .gallery-slot > .btn {
+        position: absolute; top: 8px; right: 8px; z-index: 2;
+        background: #fff; padding: 0.15rem 0.4rem;
     }
     .gallery-thumb-empty {
         display: flex; align-items: center; justify-content: center; color: #8a8175;

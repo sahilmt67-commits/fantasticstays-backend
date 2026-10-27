@@ -1,25 +1,9 @@
 @php
-    $reviewCount = old('reviews_count', isset($villa) ? $villa->reviews_count : 0);
-    $reviewsRaw = old('reviews_raw', isset($villa) ? $villa->reviewsAsText() : '');
     $faqRows = old('faqs', isset($villa) ? $villa->faqRows() : []);
     if (! is_array($faqRows) || $faqRows === []) {
         $faqRows = [['question' => '', 'answer' => '']];
     }
 @endphp
-
-<div class="card card-custom p-4 mb-4">
-    <h5 class="fw-bold mb-2" style="color: var(--fs-emerald);">Guest Reviews</h5>
-    <p class="text-muted small mb-3">These cards appear in the Guest Reviews section on the villa page. The large star number uses the Rating field under Capacity &amp; Pricing.</p>
-
-    <div class="mb-3" style="max-width: 220px;">
-        <label class="form-label fw-semibold small">Verified review count</label>
-        <input type="number" name="reviews_count" min="0" class="form-control" value="{{ $reviewCount }}">
-    </div>
-
-    <label class="form-label fw-semibold small">Reviews</label>
-    <textarea name="reviews_raw" rows="10" class="form-control font-monospace small" placeholder="Priya &amp; Kabir Sen | Delhi NCR | December 2025 | 5&#10;5 | 5 | 5 | 5 | 4.9&#10;The villa was quiet, the pool was perfect, and the team arranged dinner.">{{ $reviewsRaw }}</textarea>
-    <div class="form-text">One review per block, with a blank line between reviews. First line: Name | City | Stay date | Rating. Second line: Cleanliness | Accuracy | Service | Location | Value. Remaining lines are the comment.</div>
-</div>
 
 <div class="card card-custom p-4 mb-4">
     <div class="d-flex align-items-center justify-content-between gap-3 mb-2">

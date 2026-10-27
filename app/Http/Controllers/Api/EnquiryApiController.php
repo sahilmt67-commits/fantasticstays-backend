@@ -24,7 +24,11 @@ class EnquiryApiController extends Controller
             'villa_slug' => 'nullable|string',
             'check_in' => 'nullable|date',
             'check_out' => 'nullable|date',
-            'guests' => 'nullable|integer',
+            'guests' => 'nullable|integer|min:0',
+            'adults' => 'nullable|integer|min:0|max:50',
+            'children' => 'nullable|integer|min:0|max:50',
+            'infants' => 'nullable|integer|min:0|max:20',
+            'pets' => 'nullable|integer|min:0|max:10',
             'preferred_location' => 'nullable|string|max:255',
             'message' => 'nullable|string|max:1000',
             'source' => 'nullable|string|max:50',
@@ -51,6 +55,15 @@ class EnquiryApiController extends Controller
             $villaName = $villa?->name;
         }
 
+        $adults = $request->filled('adults') ? (int) $request->input('adults') : null;
+        $children = $request->filled('children') ? (int) $request->input('children') : null;
+        $infants = $request->filled('infants') ? (int) $request->input('infants') : null;
+        $pets = $request->filled('pets') ? (int) $request->input('pets') : null;
+        $guests = $request->input('guests');
+        if ($adults !== null || $children !== null) {
+            $guests = (int) $adults + (int) $children;
+        }
+
         $enquiry = Enquiry::create([
             'villa_id' => $villaId,
             'villa_name' => $villaName,
@@ -59,7 +72,11 @@ class EnquiryApiController extends Controller
             'phone' => $request->input('phone'),
             'check_in' => $request->input('check_in'),
             'check_out' => $request->input('check_out'),
-            'guests' => $request->input('guests'),
+            'guests' => $guests,
+            'adults' => $adults,
+            'children' => $children,
+            'infants' => $infants,
+            'pets' => $pets,
             'preferred_location' => $request->input('preferred_location'),
             'message' => $request->input('message'),
             'source' => $request->input('source', 'website'),

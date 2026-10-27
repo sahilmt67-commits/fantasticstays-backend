@@ -19,6 +19,13 @@ class VillaApiController extends Controller
     {
         $query = Villa::with(['location'])->where('status', 'active');
 
+        if ($request->boolean('for_sale')) {
+            $query->where('show_on_sale', true);
+        }
+        if ($request->boolean('for_list')) {
+            $query->where('show_on_list', true);
+        }
+
         // 1. Text Search: name, area, or description
         $searchTerm = $request->input('search') ?? $request->input('query') ?? $request->input('q');
         if (!empty($searchTerm)) {

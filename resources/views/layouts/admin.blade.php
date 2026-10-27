@@ -215,6 +215,106 @@
             font-size: 0.9rem;
         }
 
+        /* Scrollable modals wrap the form around header, body, and footer.
+           Keep the title and Save button fixed, and scroll the fields. */
+        .modal-dialog-scrollable .modal-content {
+            height: 100%;
+            max-height: calc(100vh - 2rem);
+            overflow: hidden;
+        }
+
+        .modal-dialog-scrollable .modal-content > form {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .modal-dialog-scrollable .modal-content > form > .modal-header,
+        .modal-dialog-scrollable .modal-content > form > .modal-footer,
+        .modal-dialog-scrollable .modal-content > form > .admin-image-loader {
+            flex-shrink: 0;
+        }
+
+        .admin-image-loader {
+            background: #0b251d;
+            color: #fff;
+            padding: 10px 14px 12px;
+        }
+
+        .admin-image-loader[hidden] {
+            display: none !important;
+        }
+
+        .admin-image-loader-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .admin-image-loader-label {
+            display: block;
+            font-size: 0.86rem;
+            font-weight: 600;
+        }
+
+        .admin-image-loader-meta {
+            display: block;
+            margin-top: 2px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.72);
+        }
+
+        .admin-image-loader-percent {
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            color: #e6d7c3;
+            min-width: 3.2rem;
+            text-align: right;
+        }
+
+        .admin-image-loader-track {
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.16);
+            overflow: hidden;
+        }
+
+        .admin-image-loader-bar {
+            height: 100%;
+            width: 0;
+            border-radius: inherit;
+            background: #c5a880;
+            transition: width 0.2s ease;
+        }
+
+        .admin-image-loader-bar.is-indeterminate {
+            width: 40% !important;
+            animation: admin-image-loader-slide 1.1s ease-in-out infinite;
+        }
+
+        .admin-image-loader.is-done .admin-image-loader-bar {
+            background: #8fd0a8;
+        }
+
+        .admin-image-loader.is-done .admin-image-loader-percent {
+            color: #8fd0a8;
+        }
+
+        @keyframes admin-image-loader-slide {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(280%); }
+        }
+
+        .modal-dialog-scrollable .modal-content > form > .modal-body {
+            overflow-y: auto;
+            min-height: 0;
+            flex: 1 1 auto;
+        }
+
         @media (max-width: 991.98px) {
             #admin-sidebar {
                 margin-left: calc(-1 * var(--fs-sidebar-width));
@@ -255,9 +355,9 @@
             <a href="{{ route('admin.villas.index') }}" class="nav-link {{ request()->routeIs('admin.villas.*') ? 'active' : '' }}">
                 <i class="bi bi-house-door-fill"></i> Villas List
             </a>
-            <a href="{{ route('admin.villas.create') }}" class="nav-link {{ request()->routeIs('admin.villas.create') ? 'active' : '' }}">
+            <!--<a href="{{ route('admin.villas.create') }}" class="nav-link {{ request()->routeIs('admin.villas.create') ? 'active' : '' }}">
                 <i class="bi bi-plus-circle-fill"></i> Add New Villa
-            </a>
+            </a>-->
 
             <div class="nav-category">Reservations & Leads</div>
             <!--<a href="{{ route('admin.bookings.index') }}" class="nav-link {{ request()->routeIs('admin.bookings.*') ? 'active' : '' }}">
@@ -280,12 +380,6 @@
             </a>
             <a href="{{ route('admin.enquiries.index') }}" class="nav-link {{ request()->routeIs('admin.enquiries.*') ? 'active' : '' }}">
                 <i class="bi bi-whatsapp"></i> Inquiries & Leads
-                @php
-                    $newEnquiriesCount = \App\Models\Enquiry::where('status', 'new')->count();
-                @endphp
-                @if($newEnquiriesCount > 0)
-                    <span class="badge bg-danger ms-auto">{{ $newEnquiriesCount }}</span>
-                @endif
             </a>
 
             <div class="nav-category">Catalog & Content</div>
@@ -309,9 +403,9 @@
             <a href="{{ route('admin.settings.index') }}" class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                 <i class="bi bi-gear-fill"></i> Site Settings
             </a>
-            <a href="/api/v1/villas" target="_blank" class="nav-link">
+            <!--<a href="/api/v1/villas" target="_blank" class="nav-link">
                 <i class="bi bi-code-slash"></i> API Endpoints <i class="bi bi-box-arrow-up-right ms-auto small text-white-50"></i>
-            </a>
+            </a>-->
         </nav>
     </aside>
 
@@ -325,14 +419,12 @@
                 </button>
                 <div class="d-none d-md-flex align-items-center text-muted small">
                     <i class="bi bi-shield-check text-success me-2"></i>
-                    <span>Laravel 11 Backend &bull; MySQL Database Connected</span>
+                    <span>Fantasticstay CRM
                 </div>
             </div>
 
             <div class="d-flex align-items-center gap-3">
-                <a href="https://web.whatsapp.com" target="_blank" class="btn btn-sm btn-outline-success d-none d-sm-inline-flex align-items-center gap-1 rounded-pill px-3">
-                    <i class="bi bi-whatsapp"></i> WhatsApp Concierge
-                </a>
+               
 
                 <!-- User Profile Dropdown -->
                 <div class="dropdown">
@@ -403,8 +495,21 @@
 
         <!-- Footer -->
         <footer class="bg-white py-3 px-4 border-top text-center text-muted small">
-            Fantastic Stays Luxury Villas &bull; Laravel 11 Backend & Admin System &bull; &copy; {{ date('Y') }}
+            Design and Developed By <a target="_blank" href="https://webbaaz.com/"> WebBaaz</a>  &bull; &copy; {{ date('Y') }}
         </footer>
+    </div>
+
+    <div id="admin-image-loader" class="admin-image-loader" hidden>
+        <div class="admin-image-loader-row">
+            <div>
+                <span id="admin-image-loader-label">Uploading image…</span>
+                <span id="admin-image-loader-meta" class="admin-image-loader-meta"></span>
+            </div>
+            <span id="admin-image-loader-percent">0%</span>
+        </div>
+        <div class="admin-image-loader-track">
+            <div id="admin-image-loader-bar" class="admin-image-loader-bar"></div>
+        </div>
     </div>
 
     <!-- Bootstrap 5.3 Bundle with Popper -->
@@ -425,6 +530,140 @@
                 sidebar.classList.remove('show');
             });
         }
+
+        document.addEventListener('show.bs.modal', function (event) {
+            const modal = event.target;
+            if (modal && modal.classList && modal.classList.contains('modal') && modal.parentElement !== document.body) {
+                document.body.appendChild(modal);
+            }
+        });
+    </script>
+    <script>
+        window.__adminImageUploadSeq = 0;
+        window.uploadAdminImage = function (fileInput, url, note) {
+            const file = fileInput.files && fileInput.files[0];
+            const tooLarge = 'This image is too large. You can upload images up to 200 MB.';
+            if (!file) return Promise.resolve(null);
+            if (file.size > 200 * 1024 * 1024) {
+                alert(tooLarge);
+                fileInput.value = '';
+                return Promise.resolve(null);
+            }
+
+            const loader = document.getElementById('admin-image-loader');
+            const label = document.getElementById('admin-image-loader-label');
+            const meta = document.getElementById('admin-image-loader-meta');
+            const percent = document.getElementById('admin-image-loader-percent');
+            const bar = document.getElementById('admin-image-loader-bar');
+            const token = ++window.__adminImageUploadSeq;
+            const modal = fileInput.closest('.modal');
+            const footer = modal ? modal.querySelector('.modal-footer') : null;
+            const anchor = fileInput.closest('[data-image-loader]')
+                || fileInput.closest('.mb-3, .mb-4, .col-12')
+                || fileInput.parentElement;
+            if (loader && footer) {
+                footer.parentElement.insertBefore(loader, footer);
+            } else if (loader && anchor) {
+                anchor.appendChild(loader);
+            }
+            const submitButtons = modal ? Array.from(modal.querySelectorAll('button[type="submit"], input[type="submit"]')) : [];
+            submitButtons.forEach(function (button) { button.disabled = true; });
+
+            function formatBytes(bytes) {
+                const size = Number(bytes) || 0;
+                if (size < 1024) return size + ' B';
+                if (size < 1024 * 1024) return (size / 1024).toFixed(size >= 10240 ? 0 : 1) + ' KB';
+                return (size / (1024 * 1024)).toFixed(size >= 10 * 1024 * 1024 ? 0 : 1) + ' MB';
+            }
+
+            function finishButtons() {
+                if (token !== window.__adminImageUploadSeq) return;
+                submitButtons.forEach(function (button) { button.disabled = false; });
+            }
+
+            function titled(text) {
+                return note ? (note + ' — ' + text) : text;
+            }
+
+            function paint(state) {
+                if (!loader || token !== window.__adminImageUploadSeq) return;
+                loader.hidden = false;
+                loader.classList.toggle('is-done', !!state.done);
+                loader.classList.toggle('is-busy', !state.done);
+                if (label) label.textContent = titled(state.label);
+                if (meta) meta.textContent = state.meta || '';
+                if (percent) percent.textContent = state.percentText || '';
+                if (bar) {
+                    bar.classList.toggle('is-indeterminate', !!state.indeterminate);
+                    bar.style.width = state.indeterminate ? '100%' : (state.percent || 0) + '%';
+                }
+            }
+
+            paint({ label: 'Uploading image…', percent: 2, percentText: '0%' });
+
+            const formData = new FormData();
+            formData.append('image', file);
+            const csrf = document.querySelector('meta[name="csrf-token"]');
+            formData.append('_token', csrf ? csrf.content : '');
+
+            return new Promise(function (resolve) {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', url);
+                xhr.setRequestHeader('Accept', 'application/json');
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.upload.addEventListener('progress', function (event) {
+                    if (!event.lengthComputable || !event.total) return;
+                    const pct = Math.min(100, Math.round((event.loaded / event.total) * 100));
+                    if (pct >= 100) {
+                        paint({
+                            label: 'Optimizing to WebP…',
+                            meta: 'Converting your image',
+                            percentText: '…',
+                            indeterminate: true
+                        });
+                        return;
+                    }
+                    paint({
+                        label: 'Uploading image…',
+                        percent: Math.max(pct, 2),
+                        percentText: pct + '%'
+                    });
+                });
+                xhr.addEventListener('load', function () {
+                    let data = null;
+                    try { data = JSON.parse(xhr.responseText); } catch (e) { data = null; }
+                    if (xhr.status < 200 || xhr.status >= 300 || !data || !data.url) {
+                        finishButtons();
+                        if (loader && token === window.__adminImageUploadSeq) loader.hidden = true;
+                        const message = (data && (data.message || (data.errors && data.errors.image && data.errors.image[0]))) || tooLarge;
+                        alert(message);
+                        resolve(null);
+                        return;
+                    }
+                    const saved = Number(data.optimized_percent) || 0;
+                    const savedText = saved > 0 ? (saved + '%') : 'WebP';
+                    paint({
+                        label: saved > 0 ? ('Optimized ' + saved + '%') : 'Saved as WebP',
+                        meta: formatBytes(data.original_bytes || file.size) + ' → ' + formatBytes(data.saved_bytes || file.size),
+                        percent: 100,
+                        percentText: savedText,
+                        done: true
+                    });
+                    window.setTimeout(function () {
+                        finishButtons();
+                        if (loader && token === window.__adminImageUploadSeq) loader.hidden = true;
+                    }, 3200);
+                    resolve(data);
+                });
+                xhr.addEventListener('error', function () {
+                    finishButtons();
+                    if (loader && token === window.__adminImageUploadSeq) loader.hidden = true;
+                    alert(tooLarge);
+                    resolve(null);
+                });
+                xhr.send(formData);
+            });
+        };
     </script>
     @yield('scripts')
 </body>

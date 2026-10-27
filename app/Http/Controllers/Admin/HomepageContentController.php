@@ -8,6 +8,7 @@ use App\Models\HomepageFaq;
 use App\Models\HomepagePost;
 use App\Models\HomepageStat;
 use App\Models\Setting;
+use App\Services\WebpImage;
 use Illuminate\Http\Request;
 
 class HomepageContentController extends Controller
@@ -41,6 +42,7 @@ class HomepageContentController extends Controller
                 'sale_point_2',
                 'sale_point_3',
                 'sale_form_heading',
+                'sale_list_title',
                 'sale_meta_title',
                 'sale_meta_description',
                 'sale_meta_keywords',
@@ -91,15 +93,19 @@ class HomepageContentController extends Controller
 
     public function uploadImage(Request $request)
     {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:8192',
-        ]);
+        WebpImage::validate($request);
 
-        $path = $request->file('image')->store('homepage', 'public');
+        $directory = public_path('storage/homepage');
 
-        return response()->json([
-            'url' => '/storage/'.$path,
-        ]);
+        try {
+            $filename = WebpImage::store($request->file('image'), $directory);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return WebpImage::failed();
+        }
+
+        return WebpImage::response('/storage/homepage/'.$filename, $request->file('image'), $directory, $filename);
     }
 
     public function storeExperience(Request $request)

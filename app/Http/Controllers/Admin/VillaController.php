@@ -6,9 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Amenity;
 use App\Models\Faq;
 use App\Models\Location;
-use App\Models\Review;
 use App\Models\Villa;
 use App\Models\VillaRoom;
+use App\Services\WebpImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -56,17 +56,27 @@ class VillaController extends Controller
      * AJAX: Upload a single villa image to storage, return its URL.
      */
     public function uploadImage(Request $request)
-    {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:8192',
-        ]);
+{
+    WebpImage::validate($request);
 
-        $path = $request->file('image')->store('villas', 'public');
-        return response()->json([
-            'url' => Storage::url($path),
-            'path' => $path,
-        ]);
+    $directory = public_path('storage/villas');
+
+    try {
+        $filename = WebpImage::store($request->file('image'), $directory);
+    } catch (\Throwable $e) {
+        report($e);
+
+        return WebpImage::failed();
     }
+
+    return WebpImage::response(
+        asset('storage/villas/'.$filename),
+        $request->file('image'),
+        $directory,
+        $filename,
+        ['path' => 'villas/'.$filename]
+    );
+}
 
     public function store(Request $request)
     {
@@ -101,20 +111,8 @@ class VillaController extends Controller
             'meta_description' => 'nullable|string|max:1000',
             'meta_keywords' => 'nullable|string|max:1000',
             'amenities_list' => 'nullable|array',
-            'tags_raw' => 'nullable|string',
-            'check_in_time' => 'nullable|string',
-            'check_out_time' => 'nullable|string',
-            'address' => 'nullable|string',
-            'rule_cancellation' => 'nullable|string',
-            'rule_deposit' => 'nullable|string',
-            'rule_pets' => 'nullable|string',
-            'rule_parties' => 'nullable|string',
-            'rule_smoking' => 'nullable|string',
-            'rule_quiet_hours' => 'nullable|string',
-            'rule_child_policy' => 'nullable|string',
-            'rule_identification' => 'nullable|string',
-            'reviews_count' => 'nullable|integer|min:0',
-            'reviews_raw' => 'nullable|string',
+            'cancellation_policy' => 'nullable|string',
+            'house_rules_content' => 'nullable|string',
             'faqs' => 'nullable|array',
             'faqs.*.question' => 'nullable|string|max:500',
             'faqs.*.answer' => 'nullable|string',
@@ -122,6 +120,8 @@ class VillaController extends Controller
             'video_url' => 'nullable|string|max:500',
             'video_thumb' => 'nullable|string|max:500',
             'is_featured' => 'nullable|boolean',
+            'show_on_sale' => 'nullable|boolean',
+            'show_on_list' => 'nullable|boolean',
             'instant_booking' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,maintenance',
         ]);
@@ -145,12 +145,6 @@ class VillaController extends Controller
         }
         if (empty($gallery)) {
             $gallery = [$validated['image']];
-        }
-
-        // Parse tags
-        $tags = [];
-        if (!empty($request->input('tags_raw'))) {
-            $tags = array_map('trim', explode(',', $request->input('tags_raw')));
         }
 
         // Amenities selected
@@ -183,9 +177,9 @@ class VillaController extends Controller
             'videos' => $this->videosFromRequest($request),
             'amenity_keys' => $amenityKeys,
             'amenities' => $amenityNames,
-            'tags' => $tags,
             'short_description' => $validated['short_description'],
             'description' => $validated['description'],
+            'house_rules' => $this->houseRulesFromEditors($request),
             'sleep_heading' => $validated['sleep_heading'] ?? null,
             'sleep_intro' => $validated['sleep_intro'] ?? null,
             'amenity_eyebrow' => $validated['amenity_eyebrow'] ?? null,
@@ -198,17 +192,13 @@ class VillaController extends Controller
             'meta_title' => $validated['meta_title'] ?? ($validated['name'] . ' | Fantastic Stays'),
             'meta_description' => $validated['meta_description'] ?? ($validated['short_description'] ?? ''),
             'meta_keywords' => $validated['meta_keywords'] ?? 'luxury villa goa, private pool villa, vacation rental',
-            'check_in_time' => $validated['check_in_time'] ?? '02:00 PM',
-            'check_out_time' => $validated['check_out_time'] ?? '11:00 AM',
-            'address' => $validated['address'],
-            'house_rules' => $this->houseRulesFromRequest($request),
-            'reviews_count' => $validated['reviews_count'] ?? 0,
             'is_featured' => $request->boolean('is_featured'),
+            'show_on_sale' => $request->boolean('show_on_sale'),
+            'show_on_list' => $request->boolean('show_on_list'),
             'instant_booking' => $request->boolean('instant_booking'),
             'status' => $validated['status'],
         ]);
 
-        $this->syncReviews($villa, $validated['reviews_raw'] ?? null);
         $this->syncFaqs($villa, $request->input('faqs', []));
 
         return redirect()->route('admin.villas.rooms', $villa->id)->with('success', 'Villa created successfully! Now you can configure its bedroom layouts.');
@@ -254,20 +244,8 @@ class VillaController extends Controller
             'meta_description' => 'nullable|string|max:1000',
             'meta_keywords' => 'nullable|string|max:1000',
             'amenities_list' => 'nullable|array',
-            'tags_raw' => 'nullable|string',
-            'check_in_time' => 'nullable|string',
-            'check_out_time' => 'nullable|string',
-            'address' => 'nullable|string',
-            'rule_cancellation' => 'nullable|string',
-            'rule_deposit' => 'nullable|string',
-            'rule_pets' => 'nullable|string',
-            'rule_parties' => 'nullable|string',
-            'rule_smoking' => 'nullable|string',
-            'rule_quiet_hours' => 'nullable|string',
-            'rule_child_policy' => 'nullable|string',
-            'rule_identification' => 'nullable|string',
-            'reviews_count' => 'nullable|integer|min:0',
-            'reviews_raw' => 'nullable|string',
+            'cancellation_policy' => 'nullable|string',
+            'house_rules_content' => 'nullable|string',
             'faqs' => 'nullable|array',
             'faqs.*.question' => 'nullable|string|max:500',
             'faqs.*.answer' => 'nullable|string',
@@ -275,6 +253,8 @@ class VillaController extends Controller
             'video_url' => 'nullable|string|max:500',
             'video_thumb' => 'nullable|string|max:500',
             'is_featured' => 'nullable|boolean',
+            'show_on_sale' => 'nullable|boolean',
+            'show_on_list' => 'nullable|boolean',
             'instant_booking' => 'nullable|boolean',
             'status' => 'required|in:active,inactive,maintenance',
         ]);
@@ -292,12 +272,6 @@ class VillaController extends Controller
         }
         if (empty($gallery)) {
             $gallery = $villa->gallery ?? [$validated['image']];
-        }
-
-        // Parse tags
-        $tags = [];
-        if (!empty($request->input('tags_raw'))) {
-            $tags = array_map('trim', explode(',', $request->input('tags_raw')));
         }
 
         // Amenities selected
@@ -330,9 +304,9 @@ class VillaController extends Controller
             'videos' => $this->videosFromRequest($request),
             'amenity_keys' => $amenityKeys,
             'amenities' => $amenityNames,
-            'tags' => $tags,
             'short_description' => $validated['short_description'],
             'description' => $validated['description'],
+            'house_rules' => $this->houseRulesFromEditors($request, $villa->house_rules),
             'sleep_heading' => $validated['sleep_heading'] ?? null,
             'sleep_intro' => $validated['sleep_intro'] ?? null,
             'amenity_eyebrow' => $validated['amenity_eyebrow'] ?? null,
@@ -345,17 +319,13 @@ class VillaController extends Controller
             'meta_title' => $validated['meta_title'] ?? ($validated['name'] . ' | Fantastic Stays'),
             'meta_description' => $validated['meta_description'] ?? ($validated['short_description'] ?? ''),
             'meta_keywords' => $validated['meta_keywords'] ?? 'luxury villa goa, private pool villa, vacation rental',
-            'check_in_time' => $validated['check_in_time'] ?? '02:00 PM',
-            'check_out_time' => $validated['check_out_time'] ?? '11:00 AM',
-            'address' => $validated['address'],
-            'house_rules' => $this->houseRulesFromRequest($request),
-            'reviews_count' => $validated['reviews_count'] ?? $villa->reviews_count,
             'is_featured' => $request->boolean('is_featured'),
+            'show_on_sale' => $request->boolean('show_on_sale'),
+            'show_on_list' => $request->boolean('show_on_list'),
             'instant_booking' => $request->boolean('instant_booking'),
             'status' => $validated['status'],
         ]);
 
-        $this->syncReviews($villa, $validated['reviews_raw'] ?? null);
         $this->syncFaqs($villa, $request->input('faqs', []));
 
         return redirect()->route('admin.villas.index')->with('success', "Villa '{$villa->name}' updated successfully.");
@@ -453,86 +423,33 @@ class VillaController extends Controller
         return array_values(array_filter($groups, fn (array $group) => $group['title'] !== ''));
     }
 
-    private function houseRulesFromRequest(Request $request): array
+    private function houseRulesFromEditors(Request $request, ?array $existing = null): array
     {
-        $rules = [];
-        foreach ([
-            'cancellation' => 'rule_cancellation',
-            'deposit' => 'rule_deposit',
-            'pets' => 'rule_pets',
-            'parties' => 'rule_parties',
-            'smoking' => 'rule_smoking',
-            'quiet_hours' => 'rule_quiet_hours',
-            'child_policy' => 'rule_child_policy',
-            'identification' => 'rule_identification',
-        ] as $key => $input) {
-            $value = trim((string) $request->input($input, ''));
-            if ($value !== '') {
-                $rules[$key] = $value;
-            }
+        $rules = is_array($existing) ? $existing : [];
+        $cancellation = $this->editorHtml($request->input('cancellation_policy'));
+        $content = $this->editorHtml($request->input('house_rules_content'));
+
+        if ($cancellation === '') {
+            unset($rules['cancellation']);
+        } else {
+            $rules['cancellation'] = $cancellation;
+        }
+
+        if ($content === '') {
+            unset($rules['content']);
+        } else {
+            $rules['content'] = $content;
         }
 
         return $rules;
     }
 
-    private function syncReviews(Villa $villa, ?string $raw): void
+    private function editorHtml(mixed $html): string
     {
-        $existing = $villa->allReviews()->get();
-        $parsed = $this->reviewsFromRaw($raw);
-        $villa->allReviews()->delete();
+        $html = trim((string) $html);
+        $text = trim(html_entity_decode(strip_tags(str_replace('&nbsp;', ' ', $html))));
 
-        foreach ($parsed as $review) {
-            $match = $existing->first(function (Review $row) use ($review) {
-                return $row->guest_name === $review['guest_name'] && $row->comment === $review['comment'];
-            });
-            $review['is_approved'] = $match->is_approved ?? true;
-            $review['is_featured'] = $match->is_featured ?? false;
-            $villa->allReviews()->create($review);
-        }
-    }
-
-    private function reviewsFromRaw(?string $raw): array
-    {
-        $reviews = [];
-        $blocks = preg_split("/\n\s*\n/", trim((string) $raw)) ?: [];
-        foreach ($blocks as $block) {
-            $lines = array_values(array_filter(array_map('trim', preg_split('/\r\n|\r|\n/', $block) ?: []), fn ($line) => $line !== ''));
-            if (count($lines) < 2) {
-                continue;
-            }
-            $parts = array_map('trim', explode('|', $lines[0]));
-            $name = $parts[0] ?? '';
-            $commentLines = array_slice($lines, 1);
-            if ($name === '' || $commentLines === []) {
-                continue;
-            }
-            $rating = $this->scoreValue($parts[3] ?? null, 5);
-            $scores = [$rating, $rating, $rating, $rating, $rating];
-            if (isset($commentLines[0]) && preg_match('/^\d+(?:\.\d+)?(?:\s*\|\s*\d+(?:\.\d+)?){4}$/', $commentLines[0])) {
-                $scoreParts = array_map('trim', explode('|', array_shift($commentLines)));
-                foreach ($scoreParts as $index => $score) {
-                    $scores[$index] = $this->scoreValue($score, $rating);
-                }
-            }
-            $comment = trim(implode("\n", $commentLines));
-            if ($comment === '') {
-                continue;
-            }
-            $reviews[] = [
-                'guest_name' => $name,
-                'guest_location' => ($parts[1] ?? '') !== '' ? $parts[1] : null,
-                'stay_date' => ($parts[2] ?? '') !== '' ? $parts[2] : null,
-                'rating' => $rating,
-                'cleanliness_rating' => $scores[0],
-                'accuracy_rating' => $scores[1],
-                'communication_rating' => $scores[2],
-                'location_rating' => $scores[3],
-                'value_rating' => $scores[4],
-                'comment' => $comment,
-            ];
-        }
-
-        return $reviews;
+        return $text === '' ? '' : $html;
     }
 
     private function syncFaqs(Villa $villa, array $rows): void
@@ -557,15 +474,6 @@ class VillaController extends Controller
             ]);
             $order++;
         }
-    }
-
-    private function scoreValue(mixed $value, float $fallback): float
-    {
-        if ($value === null || trim((string) $value) === '' || ! is_numeric($value)) {
-            return min(5, max(1, $fallback));
-        }
-
-        return min(5, max(1, (float) $value));
     }
 
     private function servicesFromRaw(?string $raw): array

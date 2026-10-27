@@ -20,18 +20,16 @@
             </div>
         </div>
         <div class="col-sm-6 col-md-4">
-            <select name="status" class="form-select">
-                <option value="">All Lead Statuses</option>
-                <option value="new" {{ request('status') === 'new' ? 'selected' : '' }}>New Leads</option>
-                <option value="contacted" {{ request('status') === 'contacted' ? 'selected' : '' }}>Contacted</option>
-                <option value="qualified" {{ request('status') === 'qualified' ? 'selected' : '' }}>Qualified</option>
-                <option value="booked" {{ request('status') === 'booked' ? 'selected' : '' }}>Converted / Booked</option>
-                <option value="closed" {{ request('status') === 'closed' ? 'selected' : '' }}>Closed</option>
+            <select name="source" class="form-select">
+                <option value="">All Sources</option>
+                <option value="Contact Us" {{ request('source') === 'Contact Us' ? 'selected' : '' }}>Contact Us</option>
+                <option value="Booking Enquiry" {{ request('source') === 'Booking Enquiry' ? 'selected' : '' }}>Booking Enquiry</option>
+                <option value="Check Availability" {{ request('source') === 'Check Availability' ? 'selected' : '' }}>Check Availability</option>
             </select>
         </div>
         <div class="col-sm-6 col-md-2 d-flex gap-2">
             <button type="submit" class="btn btn-emerald w-100"><i class="bi bi-funnel-fill"></i></button>
-            @if(request()->anyFilled(['search', 'status']))
+            @if(request()->anyFilled(['search', 'source']))
                 <a href="{{ route('admin.enquiries.index') }}" class="btn btn-light border"><i class="bi bi-x-lg"></i></a>
             @endif
         </div>
@@ -45,7 +43,7 @@
             <thead>
                 <tr>
                     <th>Lead Name</th>
-                    <th>Villa Interest</th>
+                    <th>From</th>
                     <th>Check-in</th>
                     <th>Check-out</th>
                     <th>Guests</th>
@@ -66,8 +64,10 @@
                             @endif
                         </td>
                         <td>
-                            <span class="badge bg-light text-dark border">{{ $enquiry->villa_name ?? ($enquiry->villa->name ?? 'General Inquiry') }}</span>
-                            <div class="small text-muted mt-1"><i class="bi bi-arrow-up-right-circle me-1"></i>Via {{ ucfirst($enquiry->source) }}</div>
+                            <span class="badge bg-light text-dark border">{{ $enquiry->source === 'website' ? 'Website' : ($enquiry->source ?: 'Website') }}</span>
+                            @if($enquiry->villa_name || $enquiry->villa)
+                                <div class="small text-muted mt-1">{{ $enquiry->villa_name ?? $enquiry->villa->name }}</div>
+                            @endif
                         </td>
                         <td>
                             <span class="fw-semibold small">{{ $enquiry->check_in ? $enquiry->check_in->format('d M Y') : '—' }}</span>
@@ -76,7 +76,16 @@
                             <span class="fw-semibold small">{{ $enquiry->check_out ? $enquiry->check_out->format('d M Y') : '—' }}</span>
                         </td>
                         <td>
-                            <span class="fw-semibold">{{ $enquiry->guests ? $enquiry->guests . ' Guests' : '—' }}</span>
+                            @if($enquiry->adults !== null || $enquiry->children !== null || $enquiry->infants !== null || $enquiry->pets !== null)
+                                <div class="small lh-sm">
+                                    <div>Adults: {{ $enquiry->adults ?? 0 }}</div>
+                                    <div>Children: {{ $enquiry->children ?? 0 }}</div>
+                                    <div>Infants: {{ $enquiry->infants ?? 0 }}</div>
+                                    <div>Pets: {{ $enquiry->pets ?? 0 }}</div>
+                                </div>
+                            @else
+                                <span class="fw-semibold">{{ $enquiry->guests ? $enquiry->guests . ' Guests' : '—' }}</span>
+                            @endif
                         </td>
                         <td>
                             <div class="small text-dark" style="max-width: 180px;">

@@ -20,7 +20,7 @@
 
 <!-- 4 Key Stat Cards -->
 <div class="row g-4 mb-5">
-    <div class="col-sm-6 col-xl-3">
+    <div class="col-sm-6 col-xl-4">
         <div class="card stat-card p-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing: 0.8px;">Total Properties</span>
@@ -33,34 +33,14 @@
                 <span class="badge bg-success-subtle text-success small">{{ $activeVillas }} Active</span>
             </div>
             <div class="text-muted small mt-2">
-                <i class="bi bi-check2-circle text-success me-1"></i> Live on Next.js frontend
+                <i class="bi bi-check2-circle text-success me-1"></i> Live on Website
             </div>
         </div>
     </div>
 
-    <div class="col-sm-6 col-xl-3">
-        <div class="card stat-card p-4">
-            <div class="d-flex align-items-center justify-content-between mb-3">
-                <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing: 0.8px;">Reservations</span>
-                <div class="stat-icon-wrapper" style="background: rgba(197, 168, 128, 0.15); color: var(--fs-gold-dark);">
-                    <i class="bi bi-calendar-check-fill"></i>
-                </div>
-            </div>
-            <div class="d-flex align-items-baseline gap-2">
-                <h3 class="fw-bold mb-0" style="color: var(--fs-emerald);">{{ $totalBookings }}</h3>
-                @if($pendingBookings > 0)
-                    <span class="badge bg-warning-subtle text-warning-emphasis small">{{ $pendingBookings }} Pending</span>
-                @else
-                    <span class="badge bg-light text-muted small">0 Pending</span>
-                @endif
-            </div>
-            <div class="text-muted small mt-2">
-                <i class="bi bi-clock-history me-1"></i> Villa stays scheduled
-            </div>
-        </div>
-    </div>
 
-    <div class="col-sm-6 col-xl-3">
+
+    <div class="col-sm-6 col-xl-4">
         <div class="card stat-card p-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing: 0.8px;">WhatsApp / Web Leads</span>
@@ -80,7 +60,7 @@
         </div>
     </div>
 
-    <div class="col-sm-6 col-xl-3">
+    <div class="col-sm-6 col-xl-4">
         <div class="card stat-card p-4">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <span class="text-muted fw-semibold small text-uppercase" style="letter-spacing: 0.8px;">Confirmed Revenue</span>
@@ -100,72 +80,10 @@
 
 <!-- Two Column Layout: Recent Bookings & Inquiries -->
 <div class="row g-4 mb-5">
-    <!-- Recent Bookings Table -->
-    <div class="col-xl-7">
-        <div class="card card-custom h-100">
-            <div class="card-header bg-white py-3 px-4 d-flex align-items-center justify-content-between border-bottom">
-                <h5 class="fw-bold mb-0" style="color: var(--fs-emerald);"><i class="bi bi-calendar-week me-2 text-warning"></i> Recent Bookings</h5>
-                <a href="{{ route('admin.bookings.index') }}" class="btn btn-sm btn-link text-decoration-none text-muted">View All <i class="bi bi-arrow-right"></i></a>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-custom mb-0">
-                    <thead>
-                        <tr>
-                            <th>Booking Ref</th>
-                            <th>Villa & Guest</th>
-                            <th>Dates</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($recentBookings as $booking)
-                            <tr>
-                                <td>
-                                    <span class="fw-bold text-dark">{{ $booking->booking_number }}</span>
-                                </td>
-                                <td>
-                                    <div class="fw-semibold text-dark">{{ $booking->villa->name ?? 'Villa' }}</div>
-                                    <div class="text-muted small"><i class="bi bi-person me-1"></i>{{ $booking->guest_name }}</div>
-                                </td>
-                                <td>
-                                    <div class="small fw-semibold">{{ $booking->check_in->format('d M') }} - {{ $booking->check_out->format('d M Y') }}</div>
-                                    <div class="text-muted small">{{ $booking->nights }} nights &bull; {{ $booking->total_guests }} guests</div>
-                                </td>
-                                <td>
-                                    <span class="fw-bold text-dark">₹{{ number_format($booking->total_amount) }}</span>
-                                </td>
-                                <td>
-                                    @if($booking->status === 'confirmed')
-                                        <span class="badge bg-success-subtle text-success">Confirmed</span>
-                                    @elseif($booking->status === 'pending')
-                                        <span class="badge bg-warning-subtle text-warning-emphasis">Pending</span>
-                                    @elseif($booking->status === 'completed')
-                                        <span class="badge bg-info-subtle text-info">Completed</span>
-                                    @else
-                                        <span class="badge bg-secondary-subtle text-secondary">Cancelled</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    <a href="{{ route('admin.bookings.show', $booking->id) }}" class="btn btn-sm btn-light border px-2 py-1">
-                                        <i class="bi bi-eye"></i>
-                                    </a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">No reservations recorded yet.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+   
 
     <!-- Recent Inquiries & WhatsApp Leads -->
-    <div class="col-xl-5">
+    <div class="col-xl-12">
         <div class="card card-custom h-100">
             <div class="card-header bg-white py-3 px-4 d-flex align-items-center justify-content-between border-bottom">
                 <h5 class="fw-bold mb-0" style="color: var(--fs-emerald);"><i class="bi bi-whatsapp me-2 text-success"></i> Customer Enquiries</h5>
@@ -182,7 +100,7 @@
                                 </span>
                             </div>
                             <div class="text-muted small">
-                                <span class="fw-semibold text-secondary">{{ $enquiry->villa_name ?? 'General Inquiry' }}</span>
+                                <span class="fw-semibold text-secondary">{{ $enquiry->source === 'website' ? 'Website' : ($enquiry->source ?: 'Website') }}</span>
                                 @if($enquiry->check_in)
                                     &bull; <span>{{ \Carbon\Carbon::parse($enquiry->check_in)->format('d M') }} - {{ \Carbon\Carbon::parse($enquiry->check_out)->format('d M') }}</span>
                                 @endif

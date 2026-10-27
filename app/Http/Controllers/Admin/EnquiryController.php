@@ -12,6 +12,10 @@ class EnquiryController extends Controller
     {
         $query = Enquiry::with('villa');
 
+        if ($request->filled('source')) {
+            $query->where('source', $request->input('source'));
+        }
+
         if ($request->filled('status')) {
             $query->where('status', $request->input('status'));
         }

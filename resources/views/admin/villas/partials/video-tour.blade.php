@@ -93,24 +93,14 @@ function previewVideoThumb(url) {
 }
 
 function uploadVideoThumb(fileInput) {
-    const file = fileInput.files[0];
-    if (!file) return;
     const progress = document.getElementById('video_thumb_progress');
     progress.classList.remove('d-none');
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-    fetch('{{ route("admin.villas.upload-image") }}', { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-            if (data.url) {
-                document.getElementById('video_thumb_input').value = data.url;
-                previewVideoThumb(data.url);
-            } else {
-                alert('Upload failed: ' + (data.message || 'Unknown error'));
-            }
+    window.uploadAdminImage(fileInput, @json(route('admin.villas.upload-image')))
+        .then(function (data) {
+            if (!data || !data.url) return;
+            document.getElementById('video_thumb_input').value = data.url;
+            previewVideoThumb(data.url);
         })
-        .catch(e => alert('Upload error: ' + e))
-        .finally(() => progress.classList.add('d-none'));
+        .finally(function () { progress.classList.add('d-none'); });
 }
 </script>

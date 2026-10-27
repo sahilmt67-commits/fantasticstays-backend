@@ -18,6 +18,10 @@ class Enquiry extends Model
         'check_in',
         'check_out',
         'guests',
+        'adults',
+        'children',
+        'infants',
+        'pets',
         'preferred_location',
         'message',
         'source',
@@ -29,6 +33,10 @@ class Enquiry extends Model
         'check_in' => 'date',
         'check_out' => 'date',
         'guests' => 'integer',
+        'adults' => 'integer',
+        'children' => 'integer',
+        'infants' => 'integer',
+        'pets' => 'integer',
     ];
 
     public function villa()

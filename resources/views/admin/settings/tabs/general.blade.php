@@ -159,10 +159,10 @@
     </div>
 
     <div class="col-lg-4">
-        <div class="card card-custom p-4 mb-4">
+        <!--<div class="card card-custom p-4 mb-4">
             <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-info-circle-fill text-primary me-2"></i> Homepage sections</h6>
             <p class="text-muted small mb-0">Use the tabs above to edit Goa Experiences, the About block, travel articles and FAQs. The site reads them from <code>GET /api/v1/homepage-sections</code>.</p>
-        </div>
+        </div>-->
         <div class="card card-custom p-4">
             <h6 class="fw-bold mb-2 text-dark"><i class="bi bi-shield-lock-fill text-success me-2"></i> Default Admin Credentials</h6>
             <p class="text-muted small mb-2">Email: <code>admin@fantasticstays.com</code></p>
@@ -173,24 +173,14 @@
 
 <script>
 function uploadHeroBanner(fileInput) {
-    const file = fileInput.files && fileInput.files[0];
-    if (!file) return;
     const progress = document.getElementById('hero_upload_progress');
     if (progress) progress.classList.remove('d-none');
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-    fetch(@json(route('admin.settings.upload-image')), { method: 'POST', body: formData })
-        .then(function (response) { return response.json(); })
+    window.uploadAdminImage(fileInput, @json(route('admin.settings.upload-image')))
         .then(function (data) {
-            if (!data.url) {
-                alert('Upload failed');
-                return;
-            }
+            if (!data || !data.url) return;
             document.getElementById('hero_image').value = data.url;
             document.getElementById('hero_preview').src = data.url;
         })
-        .catch(function (error) { alert('Upload error: ' + error); })
         .finally(function () {
             if (progress) progress.classList.add('d-none');
             fileInput.value = '';

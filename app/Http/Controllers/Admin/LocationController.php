@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Location;
+use App\Services\WebpImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -17,15 +18,19 @@ class LocationController extends Controller
 
     public function uploadImage(Request $request)
     {
-        $request->validate([
-            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:8192',
-        ]);
+        WebpImage::validate($request);
 
-        $path = $request->file('image')->store('locations', 'public');
+        $directory = public_path('storage/locations');
 
-        return response()->json([
-            'url' => '/storage/'.$path,
-        ]);
+        try {
+            $filename = WebpImage::store($request->file('image'), $directory);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return WebpImage::failed();
+        }
+
+        return WebpImage::response('/storage/locations/'.$filename, $request->file('image'), $directory, $filename);
     }
 
     public function store(Request $request)

@@ -95,7 +95,12 @@
                 <label class="form-label small fw-semibold text-secondary">Email Address</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
-                    <input type="email" name="email" class="form-control bg-light border-start-0" value="{{ old('email', 'admin@fantasticstays.com') }}" required autofocus>
+                  <input type="email"
+       name="email"
+       class="form-control bg-light border-start-0"
+       placeholder="Enter Email Address"
+       required
+       autofocus>
                 </div>
             </div>
 
@@ -103,7 +108,12 @@
                 <label class="form-label small fw-semibold text-secondary">Password</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
-                    <input type="password" name="password" id="password" class="form-control bg-light border-start-0" value="admin123" required>
+                   <input type="password"
+       name="password"
+       id="password"
+       class="form-control bg-light border-start-0"
+       placeholder="Enter Password"
+       required>
                     <button class="btn btn-light border border-start-0 text-muted" type="button" onclick="togglePassword()">
                         <i class="bi bi-eye" id="eye-icon"></i>
                     </button>
@@ -123,10 +133,7 @@
                 Sign In to Dashboard <i class="bi bi-arrow-right ms-1"></i>
             </button>
 
-            <div class="card bg-light border-0 p-3 rounded-3 mt-3 text-center">
-                <small class="text-muted d-block fw-semibold mb-1"><i class="bi bi-key-fill text-warning me-1"></i> Default Demo Credentials</small>
-                <code class="text-dark small d-block">admin@fantasticstays.com &bull; admin123</code>
-            </div>
+           
         </form>
     </div>
 </div>

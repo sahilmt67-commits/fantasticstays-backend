@@ -191,20 +191,11 @@
 @section('scripts')
 <script>
 function uploadLocationImage(fileInput, inputId, previewId) {
-    const file = fileInput.files && fileInput.files[0];
-    if (!file) return;
     const progress = document.getElementById('loc_upload_progress');
     if (progress) progress.classList.remove('d-none');
-    const formData = new FormData();
-    formData.append('image', file);
-    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
-    fetch(@json(route('admin.locations.upload-image')), { method: 'POST', body: formData })
-        .then(function (response) { return response.json(); })
+    window.uploadAdminImage(fileInput, @json(route('admin.locations.upload-image')))
         .then(function (data) {
-            if (!data.url) {
-                alert('Upload failed: ' + (data.message || 'Unknown error'));
-                return;
-            }
+            if (!data || !data.url) return;
             const input = document.getElementById(inputId);
             const preview = document.getElementById(previewId);
             if (input) input.value = data.url;
@@ -213,7 +204,6 @@ function uploadLocationImage(fileInput, inputId, previewId) {
                 preview.classList.remove('d-none');
             }
         })
-        .catch(function (error) { alert('Upload error: ' + error); })
         .finally(function () {
             if (progress) progress.classList.add('d-none');
             fileInput.value = '';

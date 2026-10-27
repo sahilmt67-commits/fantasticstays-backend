@@ -53,6 +53,8 @@ class Villa extends Model
         'latitude',
         'longitude',
         'is_featured',
+        'show_on_sale',
+        'show_on_list',
         'status',
     ];
 
@@ -66,6 +68,8 @@ class Villa extends Model
         'reviews_count' => 'integer',
         'instant_booking' => 'boolean',
         'is_featured' => 'boolean',
+        'show_on_sale' => 'boolean',
+        'show_on_list' => 'boolean',
         'listing_badges' => 'array',
         'amenity_keys' => 'array',
         'amenities' => 'array',

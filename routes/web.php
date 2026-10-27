@@ -14,14 +14,35 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\VillaController;
 use App\Http\Controllers\Admin\WhyChooseController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+Route::get('/create-storage-link', function () {
+
+    $link = public_path('storage');
+    $target = storage_path('app/public');
+
+    return '<pre>' .
+        'Public path: ' . $link . PHP_EOL .
+        'Target path: ' . $target . PHP_EOL .
+        'Link exists: ' . (file_exists($link) ? 'YES' : 'NO') . PHP_EOL .
+        'Is link: ' . (is_link($link) ? 'YES' : 'NO') . PHP_EOL .
+        'Target exists: ' . (is_dir($target) ? 'YES' : 'NO') .
+        '</pre>';
+});
 
 // Redirect root to Admin Dashboard
 Route::get('/', function () {
-    return redirect()->route('admin.dashboard');
+    return redirect()->route('admin.login');
 });
 
 // Admin Auth Routes
 Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/create-storage-link', function () {
+
+    Artisan::call('storage:link');
+
+    return '<pre>' . Artisan::output() . '</pre>';
+});
+    
     Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
     Route::post('/login', [AuthController::class, 'login'])->name('login.post');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');

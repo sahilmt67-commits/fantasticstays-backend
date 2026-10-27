@@ -34,6 +34,10 @@
                 <label class="form-label small fw-semibold">Form heading</label>
                 <input type="text" name="sale_form_heading" class="form-control" value="{{ $settings['sale_form_heading'] ?? 'Tell us what you are looking for' }}">
             </div>
+            <div class="col-md-6">
+                <label class="form-label small fw-semibold">Villa list title</label>
+                <input type="text" name="sale_list_title" class="form-control" value="{{ $settings['sale_list_title'] ?? 'Villas for sale' }}">
+            </div>
             <div class="col-12">
                 <label class="form-label small fw-semibold">Meta Title</label>
                 <input type="text" name="sale_meta_title" class="form-control" value="{{ $settings['sale_meta_title'] ?? 'Villas for Sale in Goa | Fantastic Stays' }}">
