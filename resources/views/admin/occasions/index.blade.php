@@ -17,8 +17,12 @@
     @forelse($occasions as $occ)
         <div class="col-md-6 col-xl-4">
             <div class="card card-custom h-100 overflow-hidden">
-                <div class="position-relative" style="height: 180px; background-color: #eee;">
-                    <img src="{{ $occ->image }}" alt="{{ $occ->title }}" class="w-100 h-100 object-fit-cover" onerror="this.src='/images/demo/occ-group.webp'">
+                <div class="position-relative d-flex align-items-center justify-content-center text-muted" style="height: 180px; background-color: #eee;">
+                    @if(filled($occ->image))
+                        <img src="{{ $occ->image }}" alt="{{ $occ->title }}" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('d-none');">
+                    @else
+                        <i class="bi bi-image fs-3"></i>
+                    @endif
                     @if($occ->badge)
                         <span class="position-absolute top-0 end-0 m-3 badge bg-warning text-dark">
                             {{ $occ->badge }}
@@ -70,9 +74,10 @@
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold">Cover Image</label>
                                     <div class="d-flex gap-2 align-items-center">
-                                        <img id="occ_preview_{{ $occ->id }}" src="{{ $occ->image }}" alt=""
+                                        <img id="occ_preview_{{ $occ->id }}" @if(filled($occ->image)) src="{{ $occ->image }}" @endif alt=""
                                              class="rounded border object-fit-cover {{ $occ->image ? '' : 'd-none' }}"
-                                             style="width:72px;height:52px;background:#f4f1ea;object-fit:cover;">
+                                             style="width:72px;height:52px;background:#f4f1ea;object-fit:cover;"
+                                             onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('d-none');">
                                         <input type="text" name="image" id="occ_image_{{ $occ->id }}" class="form-control font-monospace small" value="{{ $occ->image }}" readonly>
                                         <label class="btn btn-outline-secondary btn-sm mb-0 text-nowrap" style="cursor:pointer;">
                                             <i class="bi bi-folder2-open me-1"></i> Browse

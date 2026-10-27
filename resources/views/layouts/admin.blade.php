@@ -384,7 +384,7 @@
 
             <div class="nav-category">Catalog & Content</div>
             <a href="{{ route('admin.locations.index') }}" class="nav-link {{ request()->routeIs('admin.locations.*') ? 'active' : '' }}">
-                <i class="bi bi-geo-alt-fill"></i> Goa Locations
+                <i class="bi bi-geo-alt-fill"></i> Locations
             </a>
             <a href="{{ route('admin.occasions.index') }}" class="nav-link {{ request()->routeIs('admin.occasions.*') ? 'active' : '' }}">
                 <i class="bi bi-stars"></i> Curated Occasions

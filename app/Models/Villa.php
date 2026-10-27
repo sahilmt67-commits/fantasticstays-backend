@@ -16,6 +16,7 @@ class Villa extends Model
         'location_name',
         'region',
         'price_per_night',
+        'discount_percent',
         'bedrooms',
         'bathrooms',
         'guests',
@@ -98,12 +99,13 @@ class Villa extends Model
 
         return [
             'name' => $location->name,
+            'slug' => $location->slug,
             'region' => $location->region,
             'heading' => $location->detail_heading,
             'description' => $location->description,
             'image' => $location->image,
             'places' => $location->places ?? [],
-        ];
+        ] + $location->seoFields();
     }
 
     public function rooms()
@@ -165,6 +167,99 @@ class Villa extends Model
         })->implode("\n\n");
     }
 
+    public static function starterContent(): array
+    {
+        return [
+            'house_rules_content' => '<p><strong>Check-in &amp; check-out</strong><br>Check-in is from 02:00 PM and check-out is until 11:00 AM. Early check-in or late check-out is subject to availability.</p>'
+                .'<p><strong>Security deposit</strong><br>A refundable security deposit of ₹15,000 is collected at check-in.</p>'
+                .'<p><strong>Pet policy</strong><br>Well-trained pets are welcome with advance notice. A small refundable cleaning deposit may apply.</p>'
+                .'<p><strong>Parties &amp; events</strong><br>No loud music outdoors after 10:00 PM. Celebrations need prior approval.</p>'
+                .'<p><strong>Smoking</strong><br>Smoking is not allowed inside the villa.</p>'
+                .'<p><strong>Quiet hours</strong><br>Quiet hours are from 10:00 PM to 8:00 AM.</p>'
+                .'<p><strong>Child policy</strong><br>Children are welcome. Please share ages in advance so the villa can be prepared.</p>'
+                .'<p><strong>Identification</strong><br>A valid photo ID is required for all adult guests at check-in.</p>',
+            'cancellation_policy' => '<ul>'
+                .'<li><strong>45 Days or More Before Check-in:</strong> 90% refund of the booking amount.</li>'
+                .'<li><strong>44–30 Days Before Check-in:</strong> 75% refund of the booking amount.</li>'
+                .'<li><strong>29–15 Days Before Check-in:</strong> 50% refund of the booking amount.</li>'
+                .'<li><strong>Less Than 15 Days Before Check-in:</strong> No refund applicable.</li>'
+                .'<li><strong>Peak Dates and Long Weekends:</strong> All bookings are non-refundable and non-amendable.</li>'
+                .'<li><strong>Peak Period (23rd December – 5th January):</strong> All bookings are non-refundable and non-amendable.</li>'
+                .'<li><strong>Lockdown Policy:</strong> In case of a lockdown in Goa or the guest’s city of origin, a 100% refund of the total booking value will be provided.</li>'
+                .'<li><strong>Refund Processing:</strong> Refunds will be initiated within 5–7 working days from the date of cancellation.</li>'
+                .'</ul>',
+            'amenity_eyebrow' => 'Amenities',
+            'amenity_heading' => 'Thoughtfully appointed throughout',
+            'amenity_groups_raw' => implode("\n", [
+                'Popular Amenities',
+                'Private Swimming Pool',
+                'Air Conditioning',
+                'High-Speed Wi-Fi',
+                'Daily Housekeeping',
+                'Fully Staffed',
+                'Power Backup',
+                '',
+                'Kitchen & Dining',
+                'Fully Equipped Kitchen',
+                'Wood-Fired Pizza Oven',
+                'Barbecue',
+                'Dining for 10',
+                'Tea/Coffee Station',
+                'Refrigerator',
+                '',
+                'Bedroom & Bathroom',
+                'Premium Linen',
+                'En-suite Bathrooms',
+                'Rain Showers',
+                'Bath Toiletries',
+                'Wardrobes',
+                'Safe in Master Suite',
+                '',
+                'Entertainment',
+                'Smart TV in Living Room',
+                'Bluetooth Sound System',
+                'Board Games',
+                'Book Library',
+                'Yoga Deck',
+            ]),
+            'services_eyebrow' => 'Private Dining & Services',
+            'services_heading' => 'Curated services, included or on request',
+            'services_intro' => 'A dedicated team ensures your stay is effortless. Some services are part of your stay, and others can be arranged on request.',
+            'services_raw' => implode("\n", [
+                'included | Local Concierge Support',
+                'request | Personal Chef',
+                'request | Grocery Shopping Assistance',
+                'request | Airport Transfer',
+                'request | Car & Scooter Rental',
+                'request | Spa & Wellness Treatments',
+                'request | Event or Celebration Arrangements',
+                'request | Butler Service',
+            ]),
+            'faqs' => [
+                [
+                    'question' => 'What are the standard check-in and check-out timings?',
+                    'answer' => 'Check-in is from 02:00 PM and check-out is until 11:00 AM. Early check-in or late check-out is subject to availability and prior confirmation with our concierge.',
+                ],
+                [
+                    'question' => 'Is a private chef included with the villa reservation?',
+                    'answer' => 'A private chef can be arranged on request. Ingredients and groceries are billed at actuals based on the menu.',
+                ],
+                [
+                    'question' => 'Are pets allowed at the villa?',
+                    'answer' => 'Well-trained pets are welcome with advance notice. A small refundable cleaning deposit may apply.',
+                ],
+                [
+                    'question' => 'What is the cancellation and refund policy?',
+                    'answer' => 'Bookings cancelled 45 days or more before check-in receive a 90% refund. Cancellations between 29 and 15 days receive a 50% refund. Less than 15 days is non-refundable.',
+                ],
+                [
+                    'question' => 'Is there high-speed internet and power backup available?',
+                    'answer' => 'The villa has high-speed Wi-Fi and automatic power backup.',
+                ],
+            ],
+        ];
+    }
+
     public function faqRows(): array
     {
         $faqs = Faq::where('villa_id', $this->id)->orderBy('display_order')->orderBy('id')->get();
@@ -194,9 +289,11 @@ class Villa extends Model
             'id' => (string) $this->id,
             'slug' => $this->slug,
             'name' => $this->name,
-            'location' => $this->location_name ?? ($this->location->name ?? 'Assagao'),
+            'location' => $this->location_name ?: ($this->location->name ?? 'Assagao'),
+            'locationSlug' => $this->location?->slug,
             'region' => $this->region,
             'price' => (float) $this->price_per_night,
+            'discountPercent' => trim((string) $this->discount_percent) !== '' ? trim((string) $this->discount_percent) : null,
             'bedrooms' => (int) $this->bedrooms,
             'bathrooms' => (int) $this->bathrooms,
             'guests' => (int) $this->guests,

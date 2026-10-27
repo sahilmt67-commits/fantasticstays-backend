@@ -1,5 +1,5 @@
 @php
-    $faqRows = old('faqs', isset($villa) ? $villa->faqRows() : []);
+    $faqRows = old('faqs', isset($villa) ? $villa->faqRows() : \App\Models\Villa::starterContent()['faqs']);
     if (! is_array($faqRows) || $faqRows === []) {
         $faqRows = [['question' => '', 'answer' => '']];
     }

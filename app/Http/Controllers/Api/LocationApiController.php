@@ -16,9 +16,17 @@ class LocationApiController extends Controller
         ->orderBy('display_order')
         ->get();
 
+        $data = $locations->map(function (Location $location) {
+            return array_merge($location->toArray(), [
+                'villas_count' => $location->villas_count,
+                'pageType' => $location->page_type ?: 'listing',
+                'href' => $location->publicHref(),
+            ], $location->seoFields());
+        })->values();
+
         return response()->json([
             'success' => true,
-            'data' => $locations,
+            'data' => $data,
         ]);
     }
 }

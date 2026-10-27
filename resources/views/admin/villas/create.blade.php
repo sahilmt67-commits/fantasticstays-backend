@@ -62,11 +62,8 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold small">Region <span class="text-danger">*</span></label>
-                        <select name="region" class="form-select" required>
-                            <option value="North Goa" {{ old('region') === 'North Goa' ? 'selected' : '' }}>North Goa</option>
-                            <option value="South Goa" {{ old('region') === 'South Goa' ? 'selected' : '' }}>South Goa</option>
-                        </select>
+                        <label class="form-label fw-semibold small">Region</label>
+                        <input type="text" name="region" class="form-control" placeholder="e.g. North Goa" value="{{ old('region') }}">
                     </div>
                 </div>
 
@@ -96,6 +93,12 @@
                         <label class="form-label fw-semibold small">Bathrooms <span class="text-danger">*</span></label>
                         <input type="number" name="bathrooms" class="form-control" placeholder="4" value="{{ old('bathrooms', 4) }}" required>
                     </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Discount</label>
+                    <input type="text" name="discount_percent" maxlength="120" class="form-control" placeholder="20% OFF or Festive deal" value="{{ old('discount_percent') }}">
+                    <div class="form-text">Leave blank to hide. A number or any text shows as entered, highlighted beside the nightly price.</div>
                 </div>
 
                 <div class="row g-3 mb-3">

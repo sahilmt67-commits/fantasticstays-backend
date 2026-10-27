@@ -74,7 +74,13 @@
                 @forelse($villas as $villa)
                     <tr>
                         <td>
-                            <img src="{{ $villa->image }}" alt="{{ $villa->name }}" class="rounded-3 shadow-sm object-fit-cover" style="width: 65px; height: 50px; background-color: #eee;" onerror="this.src='/images/demo/casa-serenity.webp'">
+                            <div class="rounded-3 d-flex align-items-center justify-content-center text-muted" style="width: 65px; height: 50px; background-color: #eee;">
+                                @if(filled($villa->image))
+                                    <img src="{{ $villa->image }}" alt="{{ $villa->name }}" class="rounded-3 object-fit-cover w-100 h-100" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('d-none');">
+                                @else
+                                    <i class="bi bi-image"></i>
+                                @endif
+                            </div>
                         </td>
                         <td>
                             <div class="fw-bold text-dark fs-6">{{ $villa->name }}</div>

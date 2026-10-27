@@ -1,8 +1,12 @@
 @php
     $savedRules = isset($villa) && is_array($villa->house_rules) ? $villa->house_rules : [];
+    $starter = \App\Models\Villa::starterContent();
     if (session()->hasOldInput()) {
         $cancellationPolicy = old('cancellation_policy', '');
         $houseRulesContent = old('house_rules_content', '');
+    } elseif (! isset($villa)) {
+        $cancellationPolicy = $starter['cancellation_policy'];
+        $houseRulesContent = $starter['house_rules_content'];
     } else {
         $cancellationPolicy = $savedRules['cancellation'] ?? '';
         $houseRulesContent = $savedRules['content'] ?? '';

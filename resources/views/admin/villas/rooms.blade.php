@@ -31,8 +31,12 @@
                 @forelse($villa->rooms as $room)
                     <div class="col-md-6">
                         <div class="card h-100 border rounded-3 overflow-hidden shadow-sm">
-                            <div class="position-relative" style="height: 160px; background-color: #eee;">
-                                <img src="{{ $room->image ?? $villa->image }}" alt="{{ $room->room_name }}" class="w-100 h-100 object-fit-cover" onerror="this.src='{{ $villa->image }}'">
+                            <div class="position-relative d-flex align-items-center justify-content-center text-muted" style="height: 160px; background-color: #eee;">
+                                @if(filled($room->image ?: $villa->image))
+                                    <img src="{{ $room->image ?: $villa->image }}" alt="{{ $room->room_name }}" class="w-100 h-100 object-fit-cover" onerror="this.onerror=null;this.removeAttribute('src');this.classList.add('d-none');">
+                                @else
+                                    <i class="bi bi-image fs-3"></i>
+                                @endif
                                 <span class="position-absolute top-0 end-0 m-2 badge {{ $room->ensuite_bath ? 'bg-success' : 'bg-secondary' }}">
                                     <i class="bi bi-droplet-half me-1"></i> {{ $room->ensuite_bath ? 'Ensuite Bath' : 'Shared Bath' }}
                                 </span>

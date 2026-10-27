@@ -8,7 +8,8 @@
         }
         $amenityLines[] = '';
     }
-    $amenityRaw = old('amenity_groups_raw', trim(implode("\n", $amenityLines)));
+    $starter = \App\Models\Villa::starterContent();
+    $amenityRaw = old('amenity_groups_raw', isset($villa) ? trim(implode("\n", $amenityLines)) : $starter['amenity_groups_raw']);
 
     $serviceRows = isset($villa) && is_array($villa->services) ? $villa->services : [];
     $serviceLines = [];
@@ -16,7 +17,7 @@
         $status = !empty($service['included']) ? 'included' : 'request';
         $serviceLines[] = $status.' | '.($service['name'] ?? '');
     }
-    $serviceRaw = old('services_raw', implode("\n", $serviceLines));
+    $serviceRaw = old('services_raw', isset($villa) ? implode("\n", $serviceLines) : $starter['services_raw']);
 @endphp
 
 <div class="card card-custom p-4 mb-4">
@@ -26,11 +27,11 @@
     <div class="row g-3 mb-3">
         <div class="col-md-4">
             <label class="form-label fw-semibold small">Amenities label</label>
-            <input type="text" name="amenity_eyebrow" class="form-control" value="{{ old('amenity_eyebrow', isset($villa) ? $villa->amenity_eyebrow : 'Amenities') }}">
+            <input type="text" name="amenity_eyebrow" class="form-control" value="{{ old('amenity_eyebrow', isset($villa) ? $villa->amenity_eyebrow : $starter['amenity_eyebrow']) }}">
         </div>
         <div class="col-md-8">
             <label class="form-label fw-semibold small">Amenities heading</label>
-            <input type="text" name="amenity_heading" class="form-control" value="{{ old('amenity_heading', isset($villa) ? $villa->amenity_heading : 'Thoughtfully appointed throughout') }}">
+            <input type="text" name="amenity_heading" class="form-control" value="{{ old('amenity_heading', isset($villa) ? $villa->amenity_heading : $starter['amenity_heading']) }}">
         </div>
     </div>
     <div class="mb-4">
@@ -42,15 +43,15 @@
     <div class="row g-3 mb-3">
         <div class="col-md-4">
             <label class="form-label fw-semibold small">Services label</label>
-            <input type="text" name="services_eyebrow" class="form-control" value="{{ old('services_eyebrow', isset($villa) ? $villa->services_eyebrow : 'Private Dining & Services') }}">
+            <input type="text" name="services_eyebrow" class="form-control" value="{{ old('services_eyebrow', isset($villa) ? $villa->services_eyebrow : $starter['services_eyebrow']) }}">
         </div>
         <div class="col-md-8">
             <label class="form-label fw-semibold small">Services heading</label>
-            <input type="text" name="services_heading" class="form-control" value="{{ old('services_heading', isset($villa) ? $villa->services_heading : 'Curated services, included or on request') }}">
+            <input type="text" name="services_heading" class="form-control" value="{{ old('services_heading', isset($villa) ? $villa->services_heading : $starter['services_heading']) }}">
         </div>
         <div class="col-12">
             <label class="form-label fw-semibold small">Services intro</label>
-            <textarea name="services_intro" rows="2" class="form-control">{{ old('services_intro', isset($villa) ? $villa->services_intro : '') }}</textarea>
+            <textarea name="services_intro" rows="2" class="form-control">{{ old('services_intro', isset($villa) ? $villa->services_intro : $starter['services_intro']) }}</textarea>
         </div>
     </div>
     <div>
