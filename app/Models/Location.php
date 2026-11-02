@@ -38,7 +38,7 @@ class Location extends Model
             return '/luxury-rental/villas-in-'.$this->slug;
         }
 
-        return '/villas?location='.rawurlencode((string) $this->name);
+        return '/'.$this->slug;
     }
 
     public function seoFields(): array

@@ -56,7 +56,7 @@
                             <option value="">Select Goa Village / Location</option>
                             @foreach($locations as $loc)
                                 <option value="{{ $loc->id }}" {{ old('location_id') == $loc->id ? 'selected' : '' }}>
-                                    {{ $loc->name }} ({{ $loc->region }})
+                                    {{ $loc->name }}
                                 </option>
                             @endforeach
                         </select>

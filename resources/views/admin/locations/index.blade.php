@@ -73,8 +73,9 @@
                                     <input type="text" name="name" class="form-control" value="{{ $loc->name }}" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label small fw-semibold">Region</label>
-                                    <input type="text" name="region" class="form-control" value="{{ $loc->region }}" placeholder="e.g. North Goa" required>
+                                    <label class="form-label small fw-semibold">Slug</label>
+                                    <input type="text" name="slug" class="form-control" value="{{ old('slug', $loc->slug) }}" placeholder="north-goa">
+                                    <div class="form-text">Public URL: <span class="font-monospace">/{{ $loc->slug ?: 'north-goa' }}</span>. Villas that use this location are listed there.</div>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label small fw-semibold">Cover Image</label>
@@ -145,8 +146,9 @@
                         <input type="text" name="name" class="form-control" placeholder="e.g. Assagao, Candolim, Vagator" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Region <span class="text-danger">*</span></label>
-                        <input type="text" name="region" class="form-control" placeholder="e.g. North Goa" required>
+                        <label class="form-label small fw-semibold">Slug</label>
+                        <input type="text" name="slug" class="form-control" value="{{ old('slug') }}" placeholder="north-goa">
+                        <div class="form-text">Leave blank to build it from the name. The page opens as /north-goa.</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label small fw-semibold">Cover Image</label>

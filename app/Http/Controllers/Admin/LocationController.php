@@ -37,7 +37,8 @@ class LocationController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'region' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
+            'region' => 'nullable|string|max:255',
             'image' => 'nullable|string',
             'description' => 'nullable|string',
             'detail_heading' => 'nullable|string|max:255',
@@ -50,15 +51,12 @@ class LocationController extends Controller
             'display_order' => 'nullable|integer',
         ]);
 
-        $slug = Str::slug($validated['name']);
-        if (Location::where('slug', $slug)->exists()) {
-            $slug .= '-' . Str::random(4);
-        }
+        $slug = $this->uniqueSlug($validated['slug'] ?? null, $validated['name']);
 
         Location::create([
             'name' => $validated['name'],
             'slug' => $slug,
-            'region' => $validated['region'],
+            'region' => $validated['region'] ?? '',
             'image' => $this->storagePath($validated['image'] ?? null) ?? '/images/demo/loc-assagao.webp',
             'description' => $this->editorHtml($validated['description'] ?? null),
             'detail_heading' => $this->blankToNull($validated['detail_heading'] ?? null),
@@ -66,7 +64,7 @@ class LocationController extends Controller
             'is_featured' => $request->boolean('is_featured'),
             'page_type' => $validated['page_type'] ?? 'listing',
             'display_order' => $validated['display_order'] ?? 0,
-        ] + $this->seoAttributes($validated));
+        ] + $this->seoAttributes($validated, $validated['region'] ?? ''));
 
         return back()->with('success', 'Location created successfully.');
     }
@@ -75,7 +73,8 @@ class LocationController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'region' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255',
+            'region' => 'nullable|string|max:255',
             'image' => 'nullable|string',
             'description' => 'nullable|string',
             'detail_heading' => 'nullable|string|max:255',
@@ -90,7 +89,8 @@ class LocationController extends Controller
 
         $location->update([
             'name' => $validated['name'],
-            'region' => $validated['region'],
+            'slug' => $this->uniqueSlug($validated['slug'] ?? null, $validated['name'], $location->id),
+            'region' => $validated['region'] ?? $location->region,
             'image' => $this->storagePath($validated['image'] ?? null) ?? $location->image,
             'description' => $this->editorHtml($validated['description'] ?? null),
             'detail_heading' => $this->blankToNull($validated['detail_heading'] ?? null),
@@ -98,7 +98,7 @@ class LocationController extends Controller
             'is_featured' => $request->boolean('is_featured'),
             'page_type' => $validated['page_type'] ?? 'listing',
             'display_order' => $validated['display_order'] ?? $location->display_order,
-        ] + $this->seoAttributes($validated));
+        ] + $this->seoAttributes($validated, $validated['region'] ?? (string) $location->region));
 
         return back()->with('success', 'Location updated.');
     }
@@ -109,10 +109,29 @@ class LocationController extends Controller
         return back()->with('success', 'Location deleted.');
     }
 
-    private function seoAttributes(array $validated): array
+    private function uniqueSlug(?string $raw, string $name, ?int $ignoreId = null): string
+    {
+        $slug = Str::slug(trim((string) ($raw !== null && trim($raw) !== '' ? $raw : $name)));
+        if ($slug === '') {
+            $slug = 'location';
+        }
+
+        $base = $slug;
+        $suffix = 2;
+        while (Location::query()
+            ->where('slug', $slug)
+            ->when($ignoreId, fn ($query) => $query->where('id', '!=', $ignoreId))
+            ->exists()) {
+            $slug = $base.'-'.$suffix;
+            $suffix++;
+        }
+
+        return $slug;
+    }
+
+    private function seoAttributes(array $validated, string $region = ''): array
     {
         $name = $validated['name'];
-        $region = $validated['region'];
 
         return [
             'meta_title' => $this->blankToNull($validated['meta_title'] ?? null) ?? ($name.' | Fantastic Stays'),
