@@ -277,9 +277,14 @@ class VillaController extends Controller
             $gallery = $villa->gallery ?? [$validated['image']];
         }
 
-        // Amenities selected
-        $amenityKeys = $request->input('amenities_list', []);
-        $amenityNames = Amenity::whereIn('key', $amenityKeys)->pluck('name')->toArray();
+        // Keep the saved checklist when the form no longer posts it.
+        if ($request->exists('amenities_list')) {
+            $amenityKeys = $request->input('amenities_list', []);
+            $amenityNames = Amenity::whereIn('key', $amenityKeys)->pluck('name')->toArray();
+        } else {
+            $amenityKeys = $villa->amenity_keys ?? [];
+            $amenityNames = $villa->amenities ?? [];
+        }
 
         // Location name
         $locationName = $validated['location_name'];

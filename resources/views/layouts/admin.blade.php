@@ -392,9 +392,6 @@
             <a href="{{ route('admin.why-choose.index') }}" class="nav-link {{ request()->routeIs('admin.why-choose.*') ? 'active' : '' }}">
                 <i class="bi bi-patch-check-fill"></i> Why Choose
             </a>
-            <a href="{{ route('admin.amenities.index') }}" class="nav-link {{ request()->routeIs('admin.amenities.*') ? 'active' : '' }}">
-                <i class="bi bi-card-checklist"></i> Amenities
-            </a>
             <a href="{{ route('admin.reviews.index') }}" class="nav-link {{ request()->routeIs('admin.reviews.*') ? 'active' : '' }}">
                 <i class="bi bi-chat-quote-fill"></i> Guest Reviews
             </a>

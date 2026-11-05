@@ -152,7 +152,7 @@
                 {{-- ===== GALLERY IMAGES ===== --}}
                 <div class="mb-2">
                     <label class="form-label fw-semibold small mb-2">Photo Gallery (up to 20 images)</label>
-                    <small class="text-muted d-block mb-3">Select photos below. Use the trash button to remove one before you save.</small>
+                    <small class="text-muted d-block mb-3">Drag a photo to change its place. Number 1 shows first on the website. Save the villa after you finish.</small>
 
                     <div class="mb-3 p-3 rounded-3 border" data-image-loader style="background:#f8faf9;">
                         <label class="form-label fw-semibold small mb-1" for="gallery_multi_input">Upload multiple images</label>
@@ -248,25 +248,6 @@
                 <button type="submit" class="btn btn-gold w-100 py-2">
                     <i class="bi bi-check2-circle me-1"></i> Save &amp; Configure Rooms
                 </button>
-            </div>
-
-            <!-- Amenities Checklist -->
-            <div class="card card-custom p-4 mb-4">
-                <h5 class="fw-bold mb-2" style="color: var(--fs-emerald);">Amenities Checklist</h5>
-                <p class="text-muted small mb-3">Select the amenities available at this villa.</p>
-
-                <div style="max-height: 280px; overflow-y: auto;" class="pe-2">
-                    @foreach($amenities as $amenity)
-                        <div class="form-check mb-2">
-                            <input class="form-check-input" type="checkbox" name="amenities_list[]"
-                                   value="{{ $amenity->key }}" id="amenity_{{ $amenity->id }}"
-                                   {{ in_array($amenity->key, old('amenities_list', ['pool', 'wifi', 'ac', 'backup'])) ? 'checked' : '' }}>
-                            <label class="form-check-label small" for="amenity_{{ $amenity->id }}">
-                                <i class="bi {{ $amenity->icon ?? 'bi-stars' }} me-1 text-muted"></i> {{ $amenity->name }}
-                            </label>
-                        </div>
-                    @endforeach
-                </div>
             </div>
 
             @include('admin.villas.partials.stay-content')
@@ -371,6 +352,7 @@ document.addEventListener('DOMContentLoaded', function () {
         syncGalleryRaw();
     });
 
+    bindGallerySort();
     updateSeoPreview();
 });
 
@@ -411,10 +393,63 @@ const GALLERY_MAX = 20;
 
 function syncGalleryRaw() {
     const urls = [];
-    document.querySelectorAll('.gallery-url-field').forEach(f => {
+    document.querySelectorAll('#gallery_slots_container .gallery-url-field').forEach(f => {
         if (f.value.trim()) urls.push(f.value.trim());
     });
     document.getElementById('gallery_raw_input').value = urls.join('\n');
+}
+
+let galleryDragSlot = null;
+
+function renumberGallerySlots() {
+    document.querySelectorAll('#gallery_slots_container .gallery-slot').forEach(function (slot, index) {
+        const badge = slot.querySelector('.badge');
+        if (badge) badge.textContent = String(index + 1);
+    });
+}
+
+function bindGallerySort() {
+    const container = document.getElementById('gallery_slots_container');
+    if (!container || container.dataset.sortBound) return;
+    container.dataset.sortBound = '1';
+
+    container.addEventListener('dragstart', function (e) {
+        const slot = e.target.closest('.gallery-slot');
+        if (!slot || e.target.closest('button')) {
+            e.preventDefault();
+            return;
+        }
+        galleryDragSlot = slot;
+        slot.classList.add('is-dragging');
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', 'gallery');
+        }
+    });
+
+    container.addEventListener('dragover', function (e) {
+        if (!galleryDragSlot) return;
+        e.preventDefault();
+        if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+        const target = e.target.closest('.gallery-slot');
+        if (!target || target === galleryDragSlot || !container.contains(target)) return;
+        const rect = target.getBoundingClientRect();
+        const placeAfter = e.clientX > rect.left + rect.width / 2;
+        container.insertBefore(galleryDragSlot, placeAfter ? target.nextElementSibling : target);
+        renumberGallerySlots();
+    });
+
+    container.addEventListener('drop', function (e) {
+        if (!galleryDragSlot) return;
+        e.preventDefault();
+    });
+
+    container.addEventListener('dragend', function () {
+        if (galleryDragSlot) galleryDragSlot.classList.remove('is-dragging');
+        galleryDragSlot = null;
+        renumberGallerySlots();
+        syncGalleryRaw();
+    });
 }
 
 function galleryPreviewUrl(url) {
@@ -447,11 +482,11 @@ function refreshGalleryThumb(slot) {
 function gallerySlotHtml(index) {
     return '<span class="badge bg-secondary" style="min-width:28px;">' + index + '</span>' +
         '<div class="gallery-thumb-wrap">' +
-        '<img class="gallery-thumb rounded border object-fit-cover d-none" alt="Gallery image ' + index + '">' +
+        '<img class="gallery-thumb rounded border object-fit-cover d-none" alt="Gallery image ' + index + '" draggable="false">' +
         '<div class="gallery-thumb-empty rounded border"><i class="bi bi-image"></i></div>' +
         '</div>' +
         '<input type="hidden" class="gallery-url-field" value="">' +
-        '<button type="button" class="btn btn-outline-danger btn-sm" onclick="removeGallerySlot(this)" title="Remove">' +
+        '<button type="button" class="btn btn-outline-danger btn-sm" draggable="false" onmousedown="event.stopPropagation()" onclick="removeGallerySlot(this)" title="Remove">' +
         '<i class="bi bi-trash"></i></button>';
 }
 
@@ -461,6 +496,7 @@ function addGallerySlot() {
     const container = document.getElementById('gallery_slots_container');
     const div = document.createElement('div');
     div.className = 'gallery-slot';
+    div.draggable = true;
     div.innerHTML = gallerySlotHtml(gallerySlotCount);
     container.appendChild(div);
 }
@@ -587,8 +623,9 @@ function updateSeoPreview() {
     @media (min-width: 768px) {
         #gallery_slots_container { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     }
-    .gallery-slot { position: relative; }
-    .gallery-thumb-wrap { width: 100%; height: 120px; position: relative; }
+    .gallery-slot { position: relative; cursor: grab; }
+    .gallery-slot.is-dragging { opacity: 0.45; cursor: grabbing; }
+    .gallery-thumb-wrap { width: 100%; height: 120px; position: relative; pointer-events: none; }
     .gallery-thumb, .gallery-thumb-empty {
         width: 100%; height: 120px; background: #f4f1ea;
     }
