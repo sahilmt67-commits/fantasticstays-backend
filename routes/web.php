@@ -60,6 +60,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::delete('rooms/{room}', [VillaController::class, 'deleteRoom'])->name('rooms.destroy');
         // Image upload (AJAX)
         Route::post('villas/upload-image', [VillaController::class, 'uploadImage'])->name('villas.upload-image');
+        Route::post('villas/upload-brochure', [VillaController::class, 'uploadBrochure'])->name('villas.upload-brochure');
 
         // Bookings
         Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');

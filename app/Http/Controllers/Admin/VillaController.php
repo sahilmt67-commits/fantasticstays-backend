@@ -69,7 +69,7 @@ class VillaController extends Controller
         return WebpImage::failed();
     }
 
-    return WebpImage::response(
+        return WebpImage::response(
         asset('storage/villas/'.$filename),
         $request->file('image'),
         $directory,
@@ -77,6 +77,39 @@ class VillaController extends Controller
         ['path' => 'villas/'.$filename]
     );
 }
+
+    /**
+     * AJAX: Upload a villa brochure PDF and return its public URL.
+     */
+    public function uploadBrochure(Request $request)
+    {
+        $request->validate([
+            'brochure' => 'required|file|mimes:pdf|max:30720',
+        ]);
+
+        $file = $request->file('brochure');
+        $header = file_get_contents($file->getRealPath(), false, null, 0, 5);
+        if ($header !== '%PDF-') {
+            return response()->json([
+                'message' => 'Please upload a valid PDF file.',
+            ], 422);
+        }
+
+        $directory = public_path('storage/villas/brochures');
+        if (! is_dir($directory) && ! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+            return response()->json([
+                'message' => 'Could not store the brochure.',
+            ], 500);
+        }
+
+        $filename = (string) Str::uuid().'.pdf';
+        $file->move($directory, $filename);
+
+        return response()->json([
+            'url' => asset('storage/villas/brochures/'.$filename),
+            'name' => $file->getClientOriginalName(),
+        ]);
+    }
 
     public function store(Request $request)
     {
@@ -90,6 +123,7 @@ class VillaController extends Controller
             'discount_percent' => 'nullable|string|max:120',
             'bedrooms' => 'required|integer|min:1',
             'bathrooms' => 'required|integer|min:1',
+            'has_pool' => 'nullable|boolean',
             'guests' => 'required|integer|min:1',
             'beds' => 'required|integer|min:1',
             'rating' => 'nullable|numeric|min:1|max:5',
@@ -97,6 +131,7 @@ class VillaController extends Controller
             'property_type' => 'required|in:apartments,classic,budgeted,luxe',
             'image' => 'required|string',
             'gallery_raw' => 'nullable|string',
+            'brochure' => 'nullable|string|max:500',
             'short_description' => 'nullable|string',
             'description' => 'nullable|string',
             'sleep_heading' => 'nullable|string|max:255',
@@ -169,6 +204,7 @@ class VillaController extends Controller
             'discount_percent' => blank($validated['discount_percent'] ?? null) ? null : trim($validated['discount_percent']),
             'bedrooms' => $validated['bedrooms'],
             'bathrooms' => $validated['bathrooms'],
+            'has_pool' => $request->boolean('has_pool'),
             'guests' => $validated['guests'],
             'beds' => $validated['beds'],
             'rating' => $validated['rating'] ?? 5.0,
@@ -176,6 +212,7 @@ class VillaController extends Controller
             'property_type' => $validated['property_type'],
             'image' => $validated['image'],
             'gallery' => $gallery,
+            'brochure' => $this->brochureFromRequest($request),
             'videos' => $this->videosFromRequest($request),
             'amenity_keys' => $amenityKeys,
             'amenities' => $amenityNames,
@@ -225,6 +262,7 @@ class VillaController extends Controller
             'discount_percent' => 'nullable|string|max:120',
             'bedrooms' => 'required|integer|min:1',
             'bathrooms' => 'required|integer|min:1',
+            'has_pool' => 'nullable|boolean',
             'guests' => 'required|integer|min:1',
             'beds' => 'required|integer|min:1',
             'rating' => 'nullable|numeric|min:1|max:5',
@@ -232,6 +270,7 @@ class VillaController extends Controller
             'property_type' => 'required|in:apartments,classic,budgeted,luxe',
             'image' => 'required|string',
             'gallery_raw' => 'nullable|string',
+            'brochure' => 'nullable|string|max:500',
             'short_description' => 'nullable|string',
             'description' => 'nullable|string',
             'sleep_heading' => 'nullable|string|max:255',
@@ -303,6 +342,7 @@ class VillaController extends Controller
             'discount_percent' => blank($validated['discount_percent'] ?? null) ? null : trim($validated['discount_percent']),
             'bedrooms' => $validated['bedrooms'],
             'bathrooms' => $validated['bathrooms'],
+            'has_pool' => $request->boolean('has_pool'),
             'guests' => $validated['guests'],
             'beds' => $validated['beds'],
             'rating' => $validated['rating'] ?? 5.0,
@@ -310,6 +350,7 @@ class VillaController extends Controller
             'property_type' => $validated['property_type'],
             'image' => $validated['image'],
             'gallery' => $gallery,
+            'brochure' => $this->brochureFromRequest($request, $villa->brochure),
             'videos' => $this->videosFromRequest($request),
             'amenity_keys' => $amenityKeys,
             'amenities' => $amenityNames,
@@ -567,5 +608,39 @@ class VillaController extends Controller
         }
 
         return $value;
+    }
+
+    private function brochureFromRequest(Request $request, ?string $current = null): ?string
+    {
+        $next = trim((string) $request->input('brochure', ''));
+        if ($next === '') {
+            $this->deleteStoredBrochure($current);
+
+            return null;
+        }
+
+        if ($current && $current !== $next) {
+            $this->deleteStoredBrochure($current);
+        }
+
+        return $next;
+    }
+
+    private function deleteStoredBrochure(?string $url): void
+    {
+        if (! $url) {
+            return;
+        }
+
+        $path = parse_url($url, PHP_URL_PATH);
+        if (! is_string($path) || ! str_starts_with($path, '/storage/villas/brochures/')) {
+            return;
+        }
+
+        $directory = realpath(public_path('storage/villas/brochures'));
+        $file = realpath(public_path(ltrim($path, '/')));
+        if ($directory && $file && str_starts_with($file, $directory.DIRECTORY_SEPARATOR) && is_file($file)) {
+            unlink($file);
+        }
     }
 }

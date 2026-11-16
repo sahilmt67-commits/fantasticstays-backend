@@ -91,7 +91,14 @@
                     </div>
                     <div class="col-sm-6 col-md-4">
                         <label class="form-label fw-semibold small">Bathrooms <span class="text-danger">*</span></label>
-                        <input type="number" name="bathrooms" class="form-control" placeholder="4" value="{{ old('bathrooms', 4) }}" required>
+                        <div class="d-flex align-items-center gap-3">
+                            <input type="number" name="bathrooms" class="form-control" placeholder="4" value="{{ old('bathrooms', 4) }}" required>
+                            <div class="form-check form-switch mb-0 text-nowrap">
+                                <input class="form-check-input" type="checkbox" name="has_pool" id="has_pool" value="1" {{ old('has_pool') ? 'checked' : '' }}>
+                                <label class="form-check-label fw-semibold small" for="has_pool"><i class="bi bi-water me-1"></i>Pool</label>
+                            </div>
+                        </div>
+                        <div class="form-text">Tick Pool to show the pool icon on villa cards.</div>
                     </div>
                 </div>
 
@@ -151,7 +158,7 @@
 
                 {{-- ===== GALLERY IMAGES ===== --}}
                 <div class="mb-2">
-                    <label class="form-label fw-semibold small mb-2">Photo Gallery (up to 20 images)</label>
+                    <label class="form-label fw-semibold small mb-2">Photo Gallery (up to 30 images)</label>
                     <small class="text-muted d-block mb-3">Drag a photo to change its place. Number 1 shows first on the website. Save the villa after you finish.</small>
 
                     <div class="mb-3 p-3 rounded-3 border" data-image-loader style="background:#f8faf9;">
@@ -173,6 +180,8 @@
                     </div>
                 </div>
             </div>
+
+            @include('admin.villas.partials.brochure')
 
             @include('admin.villas.partials.video-tour')
 
@@ -389,7 +398,7 @@ function uploadHeroImage(fileInput) {
 
 // â”€â”€â”€ Gallery Slots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let gallerySlotCount = 0;
-const GALLERY_MAX = 20;
+const GALLERY_MAX = 30;
 
 function syncGalleryRaw() {
     const urls = [];
@@ -539,7 +548,7 @@ function uploadGalleryImages(fileInput) {
         .filter(function (field) { return field.value.trim() !== ''; }).length;
     const room = GALLERY_MAX - filled;
     if (room <= 0) {
-        alert('Maximum 20 gallery images allowed.');
+        alert('Maximum 30 gallery images allowed.');
         return;
     }
     const batch = selected.slice(0, room);
